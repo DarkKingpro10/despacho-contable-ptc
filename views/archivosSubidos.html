@@ -166,7 +166,7 @@
                         archivos podran visualizarse!, los podrá descargar despues pero se recomienda eliminar tras
                         descargar para no acumular</b></p>
                 <!--Formulario para añadir una empresa-->
-                <form method="post" id="archForm">
+                <form method="post" id="archForm" enctype="multipart/form-data">
                     <!--Fila del formulario-->
                     <div class="row filaform-archivo">
                         <!--Seleccionar la empresa a la que posee acceso-->
@@ -265,7 +265,7 @@
             <!-- Parte de arriba donde muestra la parte de volver a la página de atrás y el buscador -->
             <div class="col l3 m12 s12 direction-container">
                 <div class="direction">
-                    <p>Volver | </p><img src="../resources/icons/home-icon.png" alt="">
+                    <a class="tooltipped" data-tooltip="Regresar a Inicio" href="inicio.html"><img src="../resources/icons/home-icon.png" alt=""></a>
                     <p> > Archivos </p>
                 </div>
             </div>
@@ -289,21 +289,41 @@
             </form>
 
         </div>
-        <div class="row">
-            <div class="col s12 m6 center tooltipped" data-tooltip="Resumen de los archivos subidos por el usuario logueado">
+        <!--Fila para los reportes-->
+        <div class="row hide-on-small-and-down">
+            <div class="col s12 m6 l6 center tooltipped" data-tooltip="Resumen de los archivos subidos por el usuario logueado">
+                <p>Resumen de tus archivos subidos</p>
                 <a class="waves-effect waves-ligth btn z-depth-3 btn_estilizado" href="../api/reports/resumenArchivosS.php" target="_blank">
-                    <i class="material-icons left">assignment</i>Mi resumen de archivos subidos
+                    <i class="material-icons left">assignment</i>Abrir reporte
+                </a>
+            </div>
+            <div class="col s12 m6 l6 center tooltipped eliminarbtn" data-tooltip="Resumen de los archivos subidos por el usuario logueado">
+                <p>Resumen de los empleados que subieron archivos en x fechas</p>
+                <a class="waves-effect waves-ligth btn z-depth-3 btn_estilizado" id="reporteFAE">
+                    <i class="material-icons left">assignment</i>Abrir reporte
                 </a>
             </div>
         </div>
+        <div class="row eliminarbtn hide-on-small-and-down">
+            <div class="col s12 m6 center tooltipped" data-tooltip="Todos los empleados y el tipo de empleado que más archivos han registrados">
+                <p>Empleados con más registros de archivos</p>
+                <a class="waves-effect waves-ligth btn z-depth-3 btn_estilizado" href="../api/reports/registroArchivos.php" target="_blank">
+                    <i class="material-icons left">assignment</i>Abrir reporte
+                </a>
+            </div>
+        </div>
+        <div class="row center">
+            <div class="col offset-s4 offset-m5 indic_pagination">Estás en la página:<span id="numbe_paginc" class="numbe_paginc">1</span></div>
+        </div>
         <!--Contenedor principal del buscador de empresas-->
         <div class="row upload-files">
-            <div class="col l5 m4 search-box">
+            <div class="col l5 m10 search-box">
                 <div class="wrapper">
                     <div class="search-input">
                         <form id="buscador_empr">
                             <div class="company-search-box">
                                 <input type="text" placeholder="Buscar empresa" name="search" id="company-searcher">
+                                <input value="100" name="limit" class="hide">
                                 <img class="responsive-img" src="../resources/icons/search-icon.png" alt="">
                             </div>
                         </form>
@@ -370,11 +390,13 @@
 
     <footer>
         <!--Contenedor del menu para la páginación-->
-        <div class="container">
+        <!--Contenedor del menu para la páginación-->
+        <div class="container" id="contenedor_pags">
             <div class="row">
                 <div class="col s2 offset-s2 m2 offset-m2 l1 offset-l4 center" id="contenedor-botonnavg">
                     <div class="botonnavg-footer center" id="pagnavg-atr">
-                        <a class="tooltipped" data-position="left" data-tooltip="Regresar página anterior"><i
+                        <a class="tooltipped" data-position="left"
+                            data-tooltip="Regresar página anterior"><i
                                 class="material-icons medium">chevron_left</i></a>
                     </div>
                 </div>
@@ -389,7 +411,8 @@
                     </div>
                 </div>
                 <div class="col s2 m2 l1 center" id="contenedor-botonnavg">
-                    <div class="botonnavg-footer center tooltipped" data-position="top" data-tooltip="¡Más muy pronto!">
+                    <div class="botonnavg-footer center tooltipped" data-position="top"
+                        data-tooltip="¡Más muy pronto!" id="pagpoints">
                         <a><span>...</span></a>
                     </div>
                 </div>

@@ -74,7 +74,7 @@
                         </div>
                     </a>
                     <!--Boton de Archivos subidos-->
-                    <a class="row waves-effect  botones-sidenav" href="archivos-subidos.html">
+                    <a class="row waves-effect  botones-sidenav" href="archivosSubidos.html">
                         <div class="col s6" id="icono-opcion-sidenav">
                             <img class="responsive-img" src="../resources/icons/archivossub-icon-sidenav.png">
                         </div>
@@ -121,7 +121,7 @@
                 <!--Titulo del modal-->
                 <h4 class="center-align" id="modal-title"></h4>
                 <!--Formulario para añadir una empresa-->
-                <form class="row" method="post" id="save-form" enctype="multipart/form-data">
+                <form class="row" method="post" id="save-form" enctype="multipart/form-data" autocomplete="off">
                     <!--Fila del formulario-->
                     <div class="row filaform-archivo">
                         <!--Nombre del usuario-->
@@ -139,6 +139,10 @@
                             <input placeholder="Teléfono" name="telefono-emp" id="telefono-emp" type="text"
                                 class="validate inputs-añadirempr" required maxlength="9">
                             <label for="telefono-emp" class="labels-anadirempr">Teléfono:</label>
+                        </div>
+                        <div class="center-align">
+                            <i class="tooltipped material-icons center" data-position="top"
+                                data-tooltip="Mostrar/Ocultar" id="ocultarmostrar_contraseñas">visibility</i>
                         </div>
                         <!--Contraseña del usuario-->
                         <div class="input-field col s12 m10 offset-m1 l6">
@@ -285,7 +289,8 @@
             <!-- Parte de arriba donde muestra la parte de volver a la página de atrás y el buscador -->
             <div class="col l12 m12 s12 xl6 pull-xl1">
                 <div class=" direction">
-                    <p>Volver | </p><img src="../resources/icons/home-icon.png" alt="">
+                    <a class="tooltipped" data-tooltip="Regresar a Inicio" href="inicio.html"><img
+                            src="../resources/icons/home-icon.png" alt=""></a>
                     <p> > Empleados</p>
                 </div>
             </div>
@@ -298,15 +303,34 @@
                     </div>
                 </div>
                 <div class="col l10 s12 m7 xl6 left-align">
-                    <a class="btn-add btn modal-trigger" href="#modal-template" onclick="openCreate()"><i
+                    <a class="btn-add-emp btn modal-trigger" href="#modal-template" onclick="openCreate()"><i
                             class="material-icons left">add</i>Añadir
                         empleado</a>
                 </div>
             </form>
         </section>
+        <div class="row">
+            <div class="col s12 m6 center tooltipped"
+                data-tooltip="Lista de los empleados que no poseen acceso a ninguna empresa">
+                <p>Todos los empleados que no posean acceso a ninguna empresa</p>
+                <a class="waves-effect waves-ligth btn z-depth-3 btn_estilizado" id="reporteNA" onclick="abrirReporte(1)">
+                    <i class="material-icons left">assignment</i>Abrir Reporte
+                </a>
+            </div>
+            <div class="col s12 m6 center tooltipped"
+                data-tooltip="Lista de los empleados y las empresas a las que poseen acceso">
+                <p>Todos los empleados que posean acceso a almenos una empresa</p>
+                <a class="waves-effect waves-ligth btn z-depth-3 btn_estilizado" id="reporteFM"  onclick="abrirReporte(2)">
+                    <i class="material-icons left">assignment</i>Abrir Reporte
+                </a>
+            </div>
+        </div>
+        <div class="row center">
+            <div class="col offset-s4 offset-m5 indic_pagination">Estás en la página:<span id="numbe_paginc" class="numbe_paginc">1</span></div>
+        </div>
         <!--Contenedor para las cards mostrando la información de x empleado-->
         <form class="employee-cards row container" id="employee-form">
-            
+
         </form>
         <!--No borrar del codigo-->
         <div class="fixed-action-btn">
@@ -379,10 +403,24 @@
                 </div>
             </div>
         </div>
+        <!--Preloader de carga-->
+        <div class="preloader-wrapper big active" id="preloader-cargarJ">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div>
+                <div class="gap-patch">
+                    <div class="circle"></div>
+                </div>
+                <div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
     </main>
     <footer>
-        <!--Contenedor del footer-->
-        <div class="container">
+        <!--Contenedor del menu para la páginación-->
+        <div class="container" id="contenedor_pags">
             <div class="row">
                 <div class="col s2 offset-s2 m2 offset-m2 l1 offset-l4 center" id="contenedor-botonnavg">
                     <div class="botonnavg-footer center" id="pagnavg-atr">
@@ -401,7 +439,8 @@
                     </div>
                 </div>
                 <div class="col s2 m2 l1 center" id="contenedor-botonnavg">
-                    <div class="botonnavg-footer center tooltipped" data-position="top" data-tooltip="¡Más muy pronto!">
+                    <div class="botonnavg-footer center tooltipped" data-position="top" data-tooltip="¡Más muy pronto!"
+                        id="pagpoints">
                         <a><span>...</span></a>
                     </div>
                 </div>
