@@ -15,13 +15,13 @@ function setEmpleado() {
             // Se obtiene la respuesta en formato JSON.
             request.json().then(function (response) {
                 // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
-                if (response.status) {
+                if (response.status && (FECHACONT.classList.contains('hide'))) {
                     // Se inicializan los campos del formulario con los datos del registro seleccionado.
                     NOMBREEMP.value = response.nombre + ' ' + response.apellido;
                     // Se actualizan los campos para que las etiquetas (labels) no queden sobre los datos.
                     M.updateTextFields();
                 } else {
-                    sweetAlert(2, response.exception, null);
+                    //sweetAlert(2, response.exception, null);
                 }
             });
         } else {
@@ -74,6 +74,7 @@ var opcionesModal = {
 }
 //Inicializando componentes de Materialize
 document.addEventListener('DOMContentLoaded', function () {
+    PRELOADER.style.display = 'block';
     M.Sidenav.init(document.querySelectorAll('.sidenav'));
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
     M.Modal.init(document.querySelectorAll('.modal'), opcionesModal);
@@ -118,10 +119,18 @@ function comprobarAmin() {
             // Se obtiene la respuesta en formato JSON.
             request.json().then(function (response) {
                 // Se comprueba si hay no hay una session para admins
-                if (!response.status) {
+                if(response.cambioCtr){
+                    location.href = 'index.html';
+                }else if (!response.status) {
                     ANADIRARCHBTN.classList.remove('hide');
+                    document.querySelectorAll('.eliminarbtn').forEach(elemen =>
+                        elemen.parentNode.removeChild(elemen)
+                    );
                 } else {
-                    ANADIRARCHBTN.classList.add('hide');
+                    ANADIRARCHBTN.remove();
+                    document.querySelectorAll('.eliminarbtn').forEach(elemen =>
+                        elemen.classList.remove('hide')
+                    );
                 }
             });
         } else {
@@ -144,7 +153,6 @@ function cargarEmpresas() {
                 if (response.status) {
                     //Se ejecuta el metodo de llenado
                     let content = '';
-                    PRELOADER.style.display = 'block';
                     // Se recorre el conjunto de registros (dataset) fila por fila a través del objeto row.
                     content += `
                             <li class='empresa_in select_emprarc' id="0">Todas las empresas</li>
@@ -158,7 +166,6 @@ function cargarEmpresas() {
 
                     // Se agregan las filas al cuerpo de la tabla mediante su id para mostrar los registros.
                     EMPRESASCONT.innerHTML = content;
-                    PRELOADER.style.display = 'none';
                     document.querySelectorAll('.empresa_in').forEach(element => {
                         element.addEventListener("click", e => {
                             const id = Number(e.target.getAttribute("id"));
@@ -180,8 +187,10 @@ function cargarEmpresas() {
 
 //Función del buscador dinamico para las empresas
 EMPRESAINP.addEventListener('keyup', function (e) {
+    PRELOADER.style.display = 'block';
     if (EMPRESAINP.value == '') {
         cargarEmpresas();
+        PRELOADER.style.display = 'none';
     } else {
         // Se llama a la función que realiza la búsqueda. Se encuentra en el archivo components.js
         dynamicSearcher3(API_EMPRESAS, 'buscador_empr');
@@ -190,6 +199,7 @@ EMPRESAINP.addEventListener('keyup', function (e) {
 
 //Función cuando el buscador no encuentra los datos
 function noDatos2() {
+    PRELOADER.style.display = 'none';
     let h = document.createElement("h3");
     let text = document.createTextNode("0 resultados");
     h.appendChild(text);
@@ -201,7 +211,6 @@ function noDatos2() {
 //solo se mostrarán las empresas a las que el tenga acceso pero este depende del buscador
 function fillTable2(dataset) {
     let content = '';
-    PRELOADER.style.display = 'block';
     // Se recorre el conjunto de registros (dataset) fila por fila a través del objeto row.
     content += `
         <li class='empresa_in select_emprarc' id="0">Todas las empresas</li>
@@ -265,11 +274,11 @@ function fillTable(dataset) {
                     <!--Contenedor para mostrar las opciones que tiene para poder hacer en el archivo-->
                     <div class="file-options">
                         <!--Boton para visualizar-->
-                        <a href="../api/documents/archivosEmpleados/${row.nombre_archivo}" class="tooltipped hide-on-med-only" data-position="top" data-tooltip="Visualizar archivo" target="_blank">
+                        <a href="../api/documents/archivosEmpleados/${row.nombre_archivo}" class="tooltipped " data-position="top" data-tooltip="Visualizar archivo" target="_blank">
                             <img src="../resources/icons/ver-archivo.png" alt="">
                         </a>
                         <!--Boton para descargar-->
-                        <a onclick="descArch(${row.id_archivos_subidosemp})" class="tooltipped" data-position="top" data-tooltip="Descargar archivo">
+                        <a onclick="descArch(${row.id_archivos_subidosemp})" class="tooltipped hide-on-small-only" data-position="top" data-tooltip="Descargar archivo">
                             <img src="../resources/icons/download.png" alt="">
                         </a>
                         <!--Boton para eliminar archivo incluyendo un modal que se abre cuando se hace click en este-->
@@ -294,7 +303,7 @@ function fillTable(dataset) {
                     <!--Contenedor para mostrar las opciones que tiene para poder hacer en el archivo-->
                     <div class="file-options">
                         <!--Boton para descargar-->
-                        <a onclick="descArch(${row.id_archivos_subidosemp})" class="tooltipped" data-position="top" data-tooltip="Descargar archivo">
+                        <a onclick="descArch(${row.id_archivos_subidosemp})" class="tooltipped hide-on-small-only" data-position="top" data-tooltip="Descargar archivo">
                             <img src="../resources/icons/download.png" alt="">
                         </a>
                         <!--Boton para eliminar archivo incluyendo un modal que se abre cuando se hace click en este-->
@@ -312,10 +321,12 @@ function fillTable(dataset) {
     PRELOADER.style.display = 'none';
     // Se inicializa el componente Tooltip para que funcionen las sugerencias textuales.
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+    predecirAdelante();
 }
 
 //Función cuando el buscador no encuentra los datos
 function noDatos() {
+    PRELOADER.style.display = 'none';
     let h = document.createElement("h3");
     let text = document.createTextNode("0 resultados");
     h.appendChild(text);
@@ -330,6 +341,7 @@ BUSCADORARCH.addEventListener('keyup', function (e) {
 
 //Función para el buscador y seleccion de las empresas y filtro
 function filtrosBAE() {
+    PRELOADER.style.display = 'block';
     if (BUSCADORARCH.value == '' && document.getElementById('0').classList.contains('select_emprarc')) {
         readRowsLimit(API_ARCHIVOS, 0);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
     } else {
@@ -360,6 +372,7 @@ function filtrosBAE() {
             form1.append('filter', idemp);
             dynamicSearcher3Filter(API_ARCHIVOS, form1);
         }
+        PRELOADER.style.display = 'none';
     }
 }
 
@@ -378,6 +391,26 @@ function predecirAdelante() {
     console.log("El limite sería: " + limit);
     //Ejecutamos el metodo de la API para saber si hay productos y esta ejecutará una función que oculte o muestre el boton de adelante
     predictLImit(API_ARCHIVOS, limit);
+    let limit2 = ( (Number(BOTONNUMEROPAGI.innerHTML)+1) * 10) - 10;
+    predictButton(API_ARCHIVOS, limit2);
+}
+
+function ocultarButton2(cases) {
+    switch (cases) {
+        case 1:
+            BOTONNUMEROPAGF.parentNode.parentNode.classList.add('hide');
+            document.getElementById('pagpoints').parentNode.classList.add('hide');
+            break;
+        case 2:
+            document.getElementById('contenedor_pags').classList.add('hide');
+            let h = document.createElement("h3");
+            let text = document.createTextNode("No hay archivos subidos por empleados");
+            h.appendChild(text);
+            ARCHIVOCONT.innerHTML = "";
+            ARCHIVOCONT.append(h);
+        default:
+            break;
+    }
 }
 
 function ocultarMostrarAdl(result) {
@@ -393,6 +426,8 @@ function ocultarMostrarAdl(result) {
 
 //Boton de atras
 BOTONATRAS.addEventListener('click', function () {
+    BOTONNUMEROPAGF.parentNode.parentNode.classList.remove('hide');
+    document.getElementById('pagpoints').parentNode.classList.remove('hide');
     //Volvemos a mostrár el boton de página adelante
     BOTONADELANTE.style.display = 'block';
     //Obtenemos el número de la página inicial
@@ -445,6 +480,7 @@ document.querySelectorAll(".contnpag").forEach(el => {
                 element.classList.add('select_emprarc');
             }
         });
+        document.getElementById('numbe_paginc').innerText = number;
     });
 });
 
@@ -565,7 +601,7 @@ function crearArch() {
     M.Modal.getInstance(MODALARCH).open();
     document.getElementById('titulo_modal').innerText = 'Añadir Archivo';
     document.getElementById('indicacion_modal').innerHTML = 'Añada un archivo, este se guardará con el nombre que lo suba <b>¡No todos los archivos podran visualizarse!, los podrá descargar despues pero se recomienda eliminar tras descargar para no acumular</b>';
-    fillSelect2(ENDPOINT_EMPRESAS, 'empresas_select', '¿A que empresa pertenece?', null, true);
+    fillSelect2(ENDPOINT_EMPRESAS, 'empresas_select', 'Seleccionar empresa', null, true);
     FECHACONT.classList.add('hide');
     NOMBREEMPCONT.classList.replace('l4', 'l6');
     SELECTEMPCONT.classList.replace('l5', 'l6');
@@ -659,6 +695,7 @@ function descArch(id) {
                     DESCARC.value = response.dataset.descripcion;
                     FECHAINP.value = response.dataset.fecha_subida;
                     nombreArchivoDesc = response.dataset.nombre_archivo;
+                    NOMBREEMP.value = response.dataset.nombre_empleado + ''+ response.dataset.apellido_empleado;
                     fillSelect2(ENDPOINT_EMPRESAS, 'empresas_select', '¿A que empresa pertenece?', response.dataset.fk_id_empresa, true);
                     //Cargamos la imagen en caso se puedea
                     prevArchivoMod(response.dataset.nombre_archivo);
@@ -739,7 +776,7 @@ añadirArchivobtn.addEventListener('click', function () {
         case action = 'create':
             //Como es el caso para crear
             if (validarCamposVacios(arregloVCV) != false && SELECTEMP.value != '¿A que empresa pertenece?') {
-                if (archivoSubido.value.length != 0) {
+                if (archivoSubido.value.length != 0 && nombreArchivoInp.value.length <=15) {
                     mensaje.style.display = 'none';
                     preloaderAñadirArchivo.style.display = 'block';
                     añadirArchivobtn.classList.add("disabled");
@@ -790,7 +827,7 @@ añadirArchivobtn.addEventListener('click', function () {
                     });
                 } else {
                     mensaje.style.display = 'block';
-                    mensaje.innerText = '¡No olvides añadir un archivo!';
+                    mensaje.innerText = '¡No olvides añadir un archivo con un nombre menor a 15 caracteres!';
                 }
             } else {
                 mensaje.style.display = 'block';
@@ -808,4 +845,59 @@ function elimArch(id){
     form.append('id', id);
     // Se llama a la función que elimina un registro. Se encuentra en el archivo components.js y paso el valor de 8 para recargar los clientes
     confirmDeleteL(API_ARCHIVOS, form, 0);
+}
+
+//Programación para los reportes
+document.getElementById('reporteFAE').addEventListener('click', function () {
+    obtenerFechasRFAE();
+    M.updateTextFields();
+});
+
+function obtenerFechasRFAE() {
+    (async () => {
+
+        const { value: formValues } = await Swal.fire({
+            background: '#F7F0E9',
+            confirmButtonColor: 'black',
+            showDenyButton: true,
+            denyButtonText: '<i class="material-icons">cancel</i> Cancelar',
+            icon: 'info',
+            title: 'Indique las fechas para el reporte, en formato YY-M-D',
+            html:
+                `   
+                <div class="input-field">
+                    <label for="swal-input1"><b>Fecha Inicial</b></label>
+                    <input type="date" placeholder="Fecha inicial" id="swal-input1" class="center">
+                </div>
+                <div class="input-field">
+                    <label for="swal-input2"><b>Fecha Final</b></label>
+                    <input type="date" placeholder="Fecha Final" id="swal-input2" class="center">
+                </div>
+            `,
+            focusConfirm: false,
+            confirmButtonText:
+                '<i class="material-icons">assignment</i> Generar reporte',
+            preConfirm: () => {
+                return [
+                    document.getElementById('swal-input1').value,
+                    document.getElementById('swal-input2').value
+                ]
+            }
+        })
+
+        if (formValues) {
+            if(formValues[0].length>0 && formValues[1].length>0){
+                //Swal.fire(JSON.stringify(formValues[0]))
+                let params = '?fechai=' + formValues[0] + '&fechaf=' + formValues[1];
+                // Se establece la ruta del reporte en el servidor.
+                let url = SERVER + 'reports/reportArchivosESFX.php';
+                // Se abre el reporte en una nueva pestaña del navegador web.
+                window.open(url + params);
+                console.log(params);
+            }else{
+                sweetAlert(3,'Debe seleccionar un rango de fechas',null);
+            }
+            
+        }
+    })()
 }

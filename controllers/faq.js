@@ -1,86 +1,91 @@
-//Opciones para los modal
-var opcionesModal = {
-    preventScrolling: true,//Evita que se pueda hacer scroll a la página principal
-    dismissible: false//Evita que se pueda salir mediante teclado o click afuera
-}
-//Inicializando componentes de Materialize
+// Constante para establecer la ruta y parámetros de comunicación con las API.
+const API_GLBVAR = SERVER + 'variablesgb.php?action=';//Variable de api de variables globales
+
+
 document.addEventListener('DOMContentLoaded', function () {
-    M.Sidenav.init(document.querySelectorAll('.sidenav'));
-    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
-    M.Modal.init(document.querySelectorAll('.modal'), opcionesModal);
-    M.FormSelect.init(document.querySelectorAll('select'));
-});
-//Creamos las variables a utilizar
-//Nombre de la empresa
-const nombreEmpresa = document.getElementById('nombreempr-arch');
-//Nombre del folder
-const nombreFolder = document.getElementById('nombrefold-arch');
-//Nombre del archivo
-const nombreArchivo = document.getElementById('nombre-arch');
+    //Inicializamos los componentes de materialize
+    M.AutoInit();
+    //Inicializamos algunas funciones importantes
+    setEmpleado();
+})
+
+//Inicializamos algunas variables
 //Input de subir archivo
-var archivoSubido = document.getElementById('archivosubido-arch');
+const archivoSubido = document.getElementById('archivosubido-arch');
 //Contenedor del preview file
 const previewContenedor = document.getElementById('preview-col');
 //Texto decorativo del previw
-var textoPreview = document.getElementById('texto-prevw');
+const textoPreview = document.getElementById('texto-prevw');
 //Imagen del preview
-var imgPreview = document.getElementById('imagen-Preview');
+const imgPreview = document.getElementById('imagen-Preview');
 //Boton de subir archivo
 const añadirArchivobtn = document.getElementById('btn-añadirArchivoarhModal');
 //Fila de agregar archivo
 const agregarArchivoFila = document.getElementById('fila-agregararch');
 //Boton de cancelar subir archivo
-const cancelarArchivobtn = document.getElementById('cancelar-Añadirempr');
+const cancelarArchivobtn = document.getElementById('cancelarSupp');
 //Mensaje del modal
 const mensaje = document.getElementById('mensaje-anadirarh');
-//Preloader del modal Añadir Archivo
-const preloaderAñadirArchivo = document.getElementById('preloader-añadirarh');
 //Barra de estado en la subida del archivo
 const barraEstadoSub = document.getElementById('barraraprg-garch');
 //Constante del previsualizador del PDF
 const prevPDF = document.getElementById('prevPDF-arh');
-//Preloader de confirmación de eliminación de empresa
-var preloaderEliminarempre = document.getElementById('confirmareliminarempr_preloader');
-//Boton de confirmación de eliminación del empresa
-var eliminarEmpresaBtn = document.getElementById('aceptareliminarempresa_boton');
-//Boton de cancelar eliminación del empresa
-var cancelEliminarEmprBtn = document.getElementById('cancelar-eliminarempr');
-//Boton de confirmación de modificación de empresa
-//Función al precionar el boton de subir archivo
-añadirArchivobtn.addEventListener('click', function () {
-    //Validar los campos vacios
-    //Creamos arreglo de componentes para enviarlos a una función que los evaluará
-    let arregloVCV = [nombreEmpresa, nombreFolder, nombreArchivo];
-    if (validarCamposVacios(arregloVCV) != false) {
-        if (archivoSubido.value.length != 0) {
-            mensaje.style.display = 'none';
-            preloaderAñadirArchivo.style.display = 'block';
-            añadirArchivobtn.classList.add("disabled");
-        } else {
-            mensaje.style.display = 'block';
-            mensaje.innerText = '¡No olvides añadir un archivo!';
-        }
+const descripArch = document.getElementById('descripcion');
+
+///*Boton de ir hacia arrina*/
+const hastatop = document.getElementById('hasta_arriba');
+window.onscroll = function () {
+    if (document.documentElement.scrollTop > 100) {
+        hastatop.style.display = "block";
     } else {
-        mensaje.style.display = 'block';
-        mensaje.innerText = '¡No se permiten campos vacios!';
+        hastatop.style.display = "none";
     }
+};
+
+hastatop.addEventListener('click', function () {
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    })
 });
+
+//Función para setar el nombre del empleado en el modal
+function setEmpleado() {
+    // Petición para obtener en nombre del usuario que ha iniciado sesión.
+    fetch(API_GLBVAR + 'getNombreApellido', {
+        method: 'get'
+    }).then(function (request) {
+        // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+        if (request.ok) {
+            // Se obtiene la respuesta en formato JSON.
+            request.json().then(function (response) {
+                // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+                if (response.status) {
+                    // Se inicializan los campos del formulario con los datos del registro seleccionado.
+                    document.getElementById('nombre_emp').value = response.nombre + ' ' + response.apellido;
+                    // Se actualizan los campos para que las etiquetas (labels) no queden sobre los datos.
+                    M.updateTextFields();
+                } else {
+                    sweetAlert(2, response.exception, null);
+                }
+            });
+        } else {
+            console.log(request.status + ' ' + request.statusText);
+        }
+    });
+}
+
 //Función al precionar el boton de regresar o cancelar añadir archivo
 cancelarArchivobtn.addEventListener('click', function () {
     let nombreArchivoInp = document.getElementById('nombreArchivo-input');
-    //Ocultamos el preloader
-    preloaderAñadirArchivo.style.display = 'none';
     //Habilitamos el boton de añadir
     añadirArchivobtn.classList.remove("disabled");
-    //Ocultamos el mensaje
-    mensaje.style.display = 'none';
     //Limpiamos los campos
     //Creamos arreglo de los componentes a limpiar
-    arregloLC = [nombreEmpresa, nombreArchivo, nombreFolder, archivoSubido, nombreArchivoInp];
+    arregloLC = [descripArch, archivoSubido,];
     borrarCampos(arregloLC);
     resetPrevisualizador();
 });
-var inputfile = document.getElementById('archivoInput');
 //Creamos evento para que al seleccionar un archivo se pueda visualizar o mostrar una opción que 
 archivoSubido.addEventListener('change', function (e) {
     //Mostramos la barra de carga
@@ -98,8 +103,8 @@ function prevArchivo(e) {
     //Creamos la  ruta del archivo
     var archivoRuta = archivoSubido.value;
     //Creamos las extensiones de imagenes y pdf para saber si es pdf o imagen
-    var extIMG = /(.JPG|.PNG|.jpg|.jpg|.GIF|.gif|.mp4|.MP4|.jpeg|.JPEG|.mp3|.MP3)$/i;//Imagen 
-    var extPDF = /(.pdf|.PDF)$/i;//PDF
+    var extIMG = /(.JPG|.PNG|.jpg|.jpg|.jpeg|.JPEG)$/i;//Imagen 
+    var extPDF = /(.pdf|.PDF|.GIF|.gif|.mp3|.MP3)$/i;//PDF
     //Creamos un lector de archivos
     const reader = new FileReader();
     //Comprobamos si es compatible para previsualizar
@@ -156,21 +161,38 @@ function resetPrevisualizador() {
     textoPreview.innerText = 'Previsualizador de Archivos';
     textoPreview.style.display = 'block';
     //Mostramos imagen
-    imgPreview.style.display = 'none';
+    imgPreview.style.display = 'block';
     imgPreview.style.width = '45px';
     imgPreview.style.height = '45px';
     imgPreview.setAttribute("src", '../resources/img/previsualizar-img.png');
     barraEstadoSub.style.display = 'none';
     prevPDF.style.display = 'none';
 };
-/*Acción del evento del modal de eliminar empresa*/
-//Validar que se muestre el preloader al aceptar eliminar empresa
-eliminarEmpresaBtn.addEventListener('click', function () {
-    preloaderEliminarempre.style.display = 'block';
-    eliminarEmpresaBtn.classList.add('disabled');
-});
-//Validar que si se cancela la eliminación de empresa se esconda el preloader y se reactive el boton
-cancelEliminarEmprBtn.addEventListener('click', function () {
-    preloaderEliminarempre.style.display = 'none';
-    eliminarEmpresaBtn.classList.remove('disabled');
-});
+
+//Evento que se realizará al enviar el formulario
+document.getElementById('formSupport').addEventListener('submit', (event)=>{
+    // Se evita recargar la página web después de enviar el formulario.
+    event.preventDefault();
+    //Enviamos la solicitud
+    const url = SERVER + 'enviarSolicitudSP.php';
+    fetch(url, {
+        method: 'post',
+        body: new FormData(document.getElementById('formSupport'))
+    }).then(function (request) {
+        // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+        if (request.ok) {
+            request.json().then(function (response) {
+                // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+                if (response.status) {
+                    sweetAlert(1,response.message,null);
+                    M.Modal.getInstance(document.getElementById('modal-template')).close();
+                } else {
+                    sweetAlert(2,response.exception,null);
+                }
+            });
+        } else {
+            console.log(request.status + ' ' + request.statusText);
+        }
+    });
+})
+

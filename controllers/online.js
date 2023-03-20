@@ -27,6 +27,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="navbar-fixed">
                             <nav class="navbar-contenedor z-depth-3">
                                 <div class="nav-wrapper">
+                                    <!--Icono del FAQ-->
+                                    <a class="logout-navbar tooltipped faqIcon hide-on-med-and-down" data-position="bottom"
+                                    data-tooltip="Preguntas frecuentes" href="faq.html"><img class="responsive-img"
+                                    src="../resources/icons/faqIcon.png" height="50px" width="40"></a>
                                     <!--Titulo del apartado-->
                                     <a class="brand-logo center titulo-nav"><span>${getAbsolutePath()}</span></a>
                                     <!--Boton para el sidenav responsive-->
@@ -52,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <!--Icono de la empresa-->
                             <li>
                                 <div class="icono-sidenav">
-                                    <img class="responsive-image" src="../resources/img/logo-sidenav.png">
+                                    <img class="responsive-image" src="../resources/img/logo-sidenav.png" onclick="rec()">
                                 </div>
                             </li>
                             <!--Menu de opciones-->
@@ -94,6 +98,15 @@ document.addEventListener('DOMContentLoaded', function () {
                                             Empresas
                                         </div>
                                     </a>
+                                    <!--Botón de Tareas-->
+                                    <a class="row waves-effect  botones-sidenav" href="asignaciones.html">
+                                        <div class="col s6" id="icono-opcion-sidenav">
+                                            <img class="responsive-img" src="../resources/icons/tareas-icon-sidenav.png">
+                                        </div>
+                                        <div class="col s6" id="texto-opcion-sidenav">
+                                            Asignaciones
+                                        </div>
+                                    </a>
                                     <!--Boton de Perfil solo para telefonos-->
                                     <a class="row waves-effect hide-on-med-and-up botones-sidenav" href="perfil.html">
                                         <div class="col s6" id="icono-opcion-sidenav">
@@ -113,6 +126,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                             Cerrar Sesión
                                         </div>
                                     </a>
+                                    <!--Boton de FAQ solo para tablets y telefonos-->
+                                    <a href="faq.html" class="row waves-effect botones-sidenavE center hide-on-large-only">
+                                        <img class="responsive-img" src="../resources/icons/faqIcon.png" height="50px" width="50px">
+                                    </a>
                                 </div>
                             </li>
                         </ul>
@@ -126,6 +143,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="navbar-fixed">
                             <nav class="navbar-contenedor z-depth-3">
                                 <div class="nav-wrapper">
+                                    <!--Icono del FAQ-->
+                                    <a href="faq.html" class="logout-navbar tooltipped faqIcon hide-on-med-and-down" data-position="bottom"
+                                    data-tooltip="Preguntas frecuentes"><img class="responsive-img"
+                                    src="../resources/icons/faqIcon.png" height="50px" width="40"></a>
                                     <!--Titulo del apartado-->
                                     <a class="brand-logo center titulo-nav"><span>${getAbsolutePath()}</span></a>
                                     <!--Boton para el sidenav responsive-->
@@ -184,6 +205,15 @@ document.addEventListener('DOMContentLoaded', function () {
                                             Empresas
                                         </div>
                                     </a>
+                                    <!--Botón de Tareas-->
+                                    <a class="row waves-effect  botones-sidenav" href="asignaciones.html">
+                                        <div class="col s6" id="icono-opcion-sidenav">
+                                            <img class="responsive-img" src="../resources/icons/tareas-icon-sidenav.png">
+                                        </div>
+                                        <div class="col s6" id="texto-opcion-sidenav">
+                                            Asignaciones
+                                        </div>
+                                    </a>
                                     <!--Boton de Perfil solo para telefonos-->
                                     <a class="row waves-effect hide-on-med-and-up botones-sidenav" href="perfil.html">
                                         <div class="col s6" id="icono-opcion-sidenav">
@@ -203,6 +233,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                             Cerrar Sesión
                                         </div>
                                     </a>
+                                    <!--Boton de FAQ solo para tablets y telefonos-->
+                                    <a href="faq.html" class="row waves-effect botones-sidenavE center hide-on-large-only">
+                                        <img class="responsive-img" src="../resources/icons/faqIcon.png" height="50px" width="50px">
+                                    </a>
                                 </div>
                             </li>
                         </ul>
@@ -210,6 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.querySelector('header').innerHTML = header;
                         M.Sidenav.init(document.querySelectorAll(".sidenav"));
                     }
+                    M.Tooltip.init(document.querySelectorAll('.tooltipped'));
                 } else {
                     //Como no hay una sessión, reenviamos al 
                     location.href = 'index.html';
@@ -222,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 //Metodo para el boton de cerrar session
-document.getElementById('cerrarSesionModalbtn').addEventListener('click',function(){
+document.getElementById('cerrarSesionModalbtn').addEventListener('click', function () {
     fetch(API_HEADER + 'logOut', {
         method: 'get'
     }).then(function (request) {
@@ -246,17 +281,135 @@ document.getElementById('cerrarSesionModalbtn').addEventListener('click',functio
 function getAbsolutePath() {
     var loc = window.location;
     var pathName = loc.pathname;
-    if(pathName.includes("inicio.html")){
+    if (pathName.includes("inicio.html")) {
         return 'Inicio';
-    }else if(pathName.includes("empresas.html")){
+    } else if (pathName.includes("empresas.html")) {
         return 'Empresas';
-    }else if(pathName.includes("folders.html")){
+    } else if (pathName.includes("folders.html")) {
         return 'Folders';
-    }else if(pathName.includes("archivos.html")){
+    } else if (pathName.includes("archivos.html")) {
         return 'Archivos';
-    }else if(pathName.includes("empleados.html")){
+    } else if (pathName.includes("empleados.html")) {
         return 'Empleados';
-    }else if(pathName.includes("archivosSubidos")){
+    } else if (pathName.includes("archivosSubidos")) {
         return 'Archivos-subidos'
+    } else if (pathName.includes('rec')) {
+        return ''
+    } else if(pathName.includes('asignaciones')){
+        return 'Asignaciones'
+    }else if(pathName.includes('faq.html')){
+        return 'FAQ'
     }
 }
+
+function rec() {
+    // Petición para obtener en nombre del usuario que ha iniciado sesión.
+    fetch(API_HEADER + 'getIdUsuario', {
+        method: 'get'
+    }).then(function (request) {
+        // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+        if (request.ok) {
+            // Se obtiene la respuesta en formato JSON.
+            request.json().then(function (response) {
+                //Se compueba si el administrador es 1
+                if (response.idusuario == 1) {
+                    location.href = 'rec.html';
+                }
+            });
+        } else {
+            console.log(request.status + ' ' + request.statusText);
+        }
+    });
+}
+
+//Función de actividad
+var inactivityTime = function () {
+    var timer;//Declaramos la variable timer
+    var adviceTimer;//Declaramos la variable adviceTimer para enviar aviso cuando esta apunto de cerrar session
+    var seg = 0;
+    var itrv;
+    window.onload = resetTimer; //Añadimos el método de resetTimer a la ventana al cargar
+    document.onmousemove = resetTimer; ////Añadimos el método de resetTimer a al mover el mouse
+    document.onkeydown = resetTimer; ////Añadimos el método de resetTimer a al dar click
+    window.onmousedown = resetTimer; ////Añadimos el método de resetTimer a al dar click
+    window.ontouchstart = resetTimer; // Reconoce deslizes de pantalla táctil    
+    window.ontouchmove = resetTimer;  // Reconoce movimientos en algunas pantallas
+    window.onclick = resetTimer;      //Añadimos método al dar click
+    window.addEventListener('scroll', resetTimer, true);//Reconoce el Scroll
+
+    //Función para cerrar session
+    function activityLogOut() {
+        console.log('ya lo tiene que cerrar')
+        fetch(API_HEADER + 'logOut', {
+            method: 'get'
+        }).then(function (request) {
+            // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+            if (request.ok) {
+                // Se obtiene la respuesta en formato JSON.
+                request.json().then(function (response) {
+                    // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+                    if (response.status) {
+                        sweetAlert(1, 'Se ha cerrado la sesión por tu inactividad', 'index.html');
+                    } else {
+                        sweetAlert(2, response.exception, null);
+                    }
+                });
+            } else {
+                console.log(request.status + ' ' + request.statusText);
+            }
+        });
+    }
+
+    function logAlert() {
+        console.log('ya lo tiene que abrir')
+        Swal.fire({
+            background: '#F7F0E9',
+            confirmButtonColor: 'black',
+            icon: 'info',
+            title: 'La sesión esta a punto de caducar da',
+            showConfirmButton: true,
+            html:
+                ` 
+                <p>Da click fuera de esta alerta</p>
+                <h5 id="swal-adviceTimer">Se cerrara en <b></b> milisegundos</h5>              
+            `,
+            timer: 270000,
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading()
+                const b = Swal.getHtmlContainer().querySelector('b')
+                timerInterval = setInterval(() => {
+                    b.textContent = Swal.getTimerLeft()
+                }, 100)
+            },
+            willClose: () => {
+                clearInterval(timerInterval)
+            },
+            focusConfirm: false,
+            confirmButtonText:
+                'Evitar',
+        }).then((result) => {
+            /* Read more about handling dismissals below */
+            if (result.dismiss === Swal.DismissReason.timer) {
+                activityLogOut();
+            }
+        })
+    }
+
+    //Reseteador del timer
+    function resetTimer() {
+        clearTimeout(timer);
+        timer = setTimeout(activityLogOut, 300000);
+        clearTimeout(adviceTimer);
+        adviceTimer = setTimeout(function () {
+            logAlert();
+        }, 270000);
+    }
+}
+
+
+
+
+/*window.onload = function () {
+    inactivityTime();
+}*/

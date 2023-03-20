@@ -22,6 +22,8 @@ var limitBuscar = 6;
 document.addEventListener('DOMContentLoaded', function () {
   //Ocultamos el boton de atras para la páginación
   BOTONATRAS.style.display = 'none';
+  //Inciando el saludo
+  PRELOADER.style.display = 'block';
   comprobarAmin();
   readRowsLimit(API_EMPLEADOS, 0);
   //Ejecutamos la función para predecir si habrá un boton de adelante
@@ -46,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
 //Declaramos algunas constantes
 const EMPRESASMODAL = document.getElementById('modalAnadirEmpresa');
 const EMPRESASCHEKCONT = document.getElementById('contEmpresas');
-
+const PRELOADER = document.getElementById('preloader-cargarJ');//Preloader de carga para los elementos
 function changeOption(val) {
   var cnt = 0;
   instances.map(function (elem) {
@@ -56,6 +58,19 @@ function changeOption(val) {
     }
     cnt++;
   });
+}
+
+//Colocamos limitación en inputs privados para no copiar
+TELEFONO.oncopy = function (e) {
+  e.preventDefault();
+}
+
+DUI.oncopy = function (e) {
+  e.preventDefault();
+}
+
+CORREO.oncopy = function (e) {
+  e.preventDefault();
 }
 
 /*Boton de ir hacia arriba*/
@@ -75,7 +90,7 @@ window.onscroll = function () {
 
     // Se evita recargar la página web después de enviar el formulario.
     // Se llama a la función que realiza la búsqueda. Se encuentra en el archivo components.js
-    if (document.getElementById('input-file').value.length >0) {
+    if (document.getElementById('input-file').value.length > 0) {
       limitBuscar *= 6;
       dynamicSearcherlimit(API_EMPLEADOS, 'search-form', limitBuscar);
     }
@@ -103,17 +118,19 @@ function openCreate() {
   M.FormSelect.init(document.querySelectorAll('select'));
   document.getElementById('modal-title').textContent = 'Crear empleado';
   // Se llama a la función que llena el select del formulario. Se encuentra en el archivo components.js
-  fillSelect(API_TIPO_EMPLEADO, 'tipo-de-empleado', null);
+  fillSelectBugMtz(API_TIPO_EMPLEADO, 'tipo-de-empleado', null);
   //Ocultamos el estado
   document.getElementById('estado_check').classList.add('hide');
   document.getElementById('texto_guardar').innerText = 'Añadir empleado';
   // Se establece el campo de archivo como opcional.
   document.getElementById('contra-emp').required = true;
   document.getElementById('contrac-emp').required = true;
+  reiniciarInputsM([document.getElementById('usuario-emp'), document.getElementById('telefono-emp'), document.getElementById('contra-emp'), document.getElementById('contrac-emp'), document.getElementById('nombre-emp'), document.getElementById('dui-emp'), document.getElementById('apellido-emp'), document.getElementById('correo-emp')]);
 }
 
 // Función para preparar el formulario al momento de modificar un registro.
 function openUpdate(id) {
+  PRELOADER.style.display = 'block';
   // Se abre la caja de diálogo (modal) que contiene el formulario.
   // Se establece el campo de archivo como opcional.
   //Ocultamos el estado
@@ -148,7 +165,7 @@ function openUpdate(id) {
           document.getElementById('dui-emp').value = response.dataset.dui_empleado;
           document.getElementById('correo-emp').value = response.dataset.correo_empleadocontc;
           document.getElementById('telefono-emp').value = response.dataset.telefono_empleadocontc;
-          fillSelect(API_TIPO_EMPLEADO, 'tipo-de-empleado', response.dataset.fk_id_tipo_empleado);
+          fillSelectBugMtz(API_TIPO_EMPLEADO, 'tipo-de-empleado', response.dataset.fk_id_tipo_empleado);
           //Analizamos si el estado es Activo o Bloqueado
           if (response.dataset.fk_id_estado == 4) {
             document.getElementById('estadoEmp').checked = true;
@@ -157,6 +174,7 @@ function openUpdate(id) {
           }
           // Se actualizan los campos para que las etiquetas (labels) no queden sobre los datos.
           M.updateTextFields();
+          PRELOADER.style.display = 'none';
         } else {
           sweetAlert(2, response.exception, null);
         }
@@ -170,6 +188,8 @@ function openUpdate(id) {
 document.getElementById('input-file').addEventListener('keyup', (event) => {
   // Se evita recargar la página web después de enviar el formulario.
   // Se llama a la función que realiza la búsqueda. Se encuentra en el archivo components.js
+  //Inciando el saludo
+  PRELOADER.style.display = 'block';
   if (document.getElementById('input-file').value === "") {
     readRowsLimit(API_EMPLEADOS, 0);
   }
@@ -181,6 +201,7 @@ document.getElementById('input-file').addEventListener('keyup', (event) => {
 
 //Función cuando el buscador no encuentra los datos
 function noDatos() {
+  PRELOADER.style.display = 'none';
   let h = document.createElement("h3");
   let text = document.createTextNode("0 resultados");
   h.appendChild(text);
@@ -190,6 +211,8 @@ function noDatos() {
 
 /*Metodo para llenar los checkbox con las empresas*/
 function llenarEmpresas(idemp) {
+  //Inciando el saludo
+  PRELOADER.style.display = 'block';
   let content = '';
   fetch(API_EMPRESAS + 'readAll', {
     method: 'get'
@@ -263,6 +286,7 @@ function checarCheckBoxsEmpr(idemp) {
             element.setAttribute("checked", "checked");
           }
         });
+        PRELOADER.style.display = 'none';
       });
     } else {
       console.log(request.status + ' ' + request.statusText);
@@ -281,7 +305,9 @@ function comprobarAmin() {
       // Se obtiene la respuesta en formato JSON.
       request.json().then(function (response) {
         // Se comprueba si hay no hay una session para admins
-        if (!response.status) {
+        if (response.cambioCtr) {
+          location.href = 'index.html';
+        } else if (!response.status) {
           location.href = 'inicio.html';
         }
       });
@@ -342,12 +368,19 @@ function fillTable(dataset) {
                                         class="material-icons">edit</i></a></li>
                             <li><a class="btn-floating green tooltipped eliminarbtn" data-position="right"
                                     data-tooltip="Accesos a empresas" onclick="llenarEmpresas(${row.id_empleado});"><i
-                                        class="material-icons">business</i></a></li>
-                        </ul>
+                                        class="material-icons">business</i></a></li>`
+    if (row.secret_auth) {
+      content += `
+                              <li><a class="btn-floating black tooltipped" data-tooltip="Eliminar factor 3P" data-position="right"
+                                onclick="deleteGAuth(${row.id_empleado})"><i
+                              class="material-icons">enhanced_encryption</i></a></li>`
+    }
+    content += `
+                          </ul>
                     </div>
                     <!--Imagen de la Card donde muestra la foto del empleado-->
                     <div class="card-image">
-                        <img src="../resources/img/employee-example.png">
+                        <img src="../resources/img/employeeIcon.png">
                     </div>
                     <!--Contenedor de la informacion del empleado-->
                     <div class="card-content center">
@@ -400,6 +433,9 @@ function fillTable(dataset) {
   M.Materialbox.init(document.querySelectorAll('.materialboxed'));
   // Se inicializa el componente Tooltip para que funcionen las sugerencias textuales.
   M.Tooltip.init(document.querySelectorAll('.tooltipped'));
+  //Inciando el saludo
+  PRELOADER.style.display = 'none';
+  predecirAdelante();
 }
 
 //Declaramos algunos componentes
@@ -424,6 +460,8 @@ function ocultarMostrarAdl(result) {
 
 //Boton de atras
 BOTONATRAS.addEventListener('click', function () {
+  BOTONNUMEROPAGF.parentNode.parentNode.classList.remove('hide');
+  document.getElementById('pagpoints').parentNode.classList.remove('hide');
   //Volvemos a mostrár el boton de página adelante
   BOTONADELANTE.style.display = 'block';
   //Obtenemos el número de la página inicial
@@ -461,17 +499,38 @@ function predecirAdelante() {
   //Colocamos el boton con un display block para futuras operaciones
   BOTONADELANTE.style.display = 'block';
   //Obtenemos el número de página que seguiría al actual
-  let paginaFinal = (Number(BOTONNUMEROPAGF.innerHTML)) + 2;
+  let paginaFinal = (Number(BOTONNUMEROPAGI.innerHTML)) + 2;
   console.log("pagina maxima " + paginaFinal);
   //Calculamos el limite que tendria el filtro de la consulta dependiendo de la cantidad de Clientes a mostrar
   let limit = (paginaFinal * 6) - 6;
   console.log("El limite sería: " + limit);
   //Ejecutamos el metodo de la API para saber si hay productos y esta ejecutará una función que oculte o muestre el boton de adelante
   predictLImit(API_EMPLEADOS, limit);
+  let limit2 = ((Number(BOTONNUMEROPAGI.innerHTML) + 1) * 6) - 6;
+  predictButton(API_EMPLEADOS, limit2);
+}
+
+function ocultarButton2(cases) {
+  switch (cases) {
+    case 1:
+      BOTONNUMEROPAGF.parentNode.parentNode.classList.add('hide');
+      document.getElementById('pagpoints').parentNode.classList.add('hide');
+      break;
+    case 2:
+      document.getElementById('contenedor_pags').classList.add('hide');
+      let h = document.createElement("h3");
+      let text = document.createTextNode("No hay empleados registrados");
+      h.appendChild(text);
+      document.getElementById('employee-form').innerHTML = "";
+      document.getElementById('employee-form').append(h);
+    default:
+      break;
+  }
 }
 
 document.querySelectorAll(".contnpag").forEach(el => {
   el.addEventListener("click", e => {
+    PRELOADER.style.display = 'block';
     //Se obtiene el numero dentro del span
     let number = Number(el.lastElementChild.textContent);
     console.log('numero seleccionado ' + number);
@@ -480,12 +539,14 @@ document.querySelectorAll(".contnpag").forEach(el => {
     //Se ejecuta la recarga de datos enviando la variable de topAct
     //Ejecutamos la función para predecir si habrá un boton de adelante
     readRowsLimit(API_EMPLEADOS, limit);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
+    document.getElementById('numbe_paginc').innerText = number;
   });
 });
 
 document.getElementById('save-form').addEventListener('submit', function (event) {
   // Se evita recargar la página web después de enviar el formulario.
   event.preventDefault();
+  PRELOADER.style.display = 'block';
   // Se define una variable para establecer la acción a realizar en la API.
   let action = '';
   // Se comprueba si el campo oculto del formulario esta seteado para actualizar, de lo contrario será para crear.
@@ -545,8 +606,52 @@ function openDelete(id) {
   // Se define un objeto con los datos del registro seleccionado.
   const data = new FormData();
   data.append('id', id);
-  // Se llama a la función que elimina un registro. Se encuentra en el archivo components.js
-  confirmDeleteL(API_EMPLEADOS, data, 0);
+  fetch(API_EMPLEADOS + 'delete', {
+    method: 'post',
+    body: data
+  }).then(function (request) {
+    // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+    if (request.ok) {
+      // Se obtiene la respuesta en formato JSON.
+      request.json().then(function (response) {
+        // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+        if (response.status) {
+          Swal.fire({
+            title: 'Éxito',
+            text: response.message,
+            icon: 'success',
+            allowEscapeKey: false,
+            allowOutsideClick: false,
+            confirmButtonText: 'Aceptar',
+            background: '#F7F0E9',
+            confirmButtonColor: 'green',
+          }).then(function (value) {
+            // Se comprueba si fue cliqueado el botón Sí para hacer la petición de borrado, de lo contrario no se hace nada.
+            if (value.isConfirmed) {
+              // Se cierra la caja de dialogo (modal) del formulario.
+              M.Modal.getInstance(document.getElementById('modal-template')).close();
+              //Se cargan nuevamente las filas en la tabla de la vista después de guardar un registro y se muestra un mensaje de éxito.
+              readRowsLimit(API_EMPLEADOS, 0);
+            }
+          });
+
+        } else {
+          Swal.fire({
+            title: 'Error',
+            text: response.exception,
+            icon: 'error',
+            allowEscapeKey: false,
+            allowOutsideClick: false,
+            confirmButtonText: 'Aceptar',
+            background: '#F7F0E9',
+            confirmButtonColor: 'green',
+          });
+        }
+      });
+    } else {
+      console.log(request.status + ' ' + request.statusText);
+    }
+  });
 }
 
 //Función para comprobar si las contraseñas son iguales
@@ -555,13 +660,36 @@ function contrasenasIguales() {
   if (document.getElementById('contra-emp').value != document.getElementById('contrac-emp').value) {
     mensaje.innerText = 'Las contraseñas no coinciden';
     mensaje.style.display = 'block';
-  } else if (document.getElementById('contra-emp').value.length < 6) {
-    mensaje.innerText = 'Las contraseñas deben tener más de 6 caracteres';
+  } else if (document.getElementById('contra-emp').value.length < 8) {
+    mensaje.innerText = 'Las contraseñas deben tener más de 8 caracteres';
+    mensaje.style.display = 'block';
+  } else if (!validarCarateresEsp(document.getElementById('contra-emp').value)) {
+    mensaje.innerText = 'Las contraseñas deben poseer un caracter especial como #, =, + etc';
+    mensaje.style.display = 'block';
+  } else if (/\s/.test(document.getElementById('contra-emp').value)) {
+    mensaje.innerText = 'Las contraseñas no deben tener espacios en blanco';
+    mensaje.style.display = 'block';
+  } else if (!/[a-zA-Z]/.test(document.getElementById('contra-emp').value)) {
+    mensaje.innerText = 'Las contraseñas debe ser alfanumerica';
     mensaje.style.display = 'block';
   }
   else {
     mensaje.style.display = 'none';
   }
+}
+
+//Función para validar caracteres especiales recibe como parametro un texto
+function validarCarateresEsp(contra) {
+  let cEpeciales = ['#', '°', '!', '#', '$', '%', '?', '¡', '¿', '+', '*', '.', ',', '/', '=', ';', ':', '-'];
+
+  let incluye = false;
+
+  cEpeciales.forEach((caracter) => {
+    if (contra.includes(caracter)) {
+      incluye = true;
+    }
+  });
+  return incluye;
 }
 
 //Funciónes para comprobar las contraseñas mientras estan siendo escritas
@@ -606,4 +734,134 @@ TELEFONO.addEventListener('keyup', e => {
 
 DUI.addEventListener('keyup', e => {
   guionDUI(e, DUI);
+});
+
+/*Función para eliminar el codigo de Google Authenticator*/
+function deleteGAuth(id) {
+  Swal.fire({
+    title: 'Advertencia',
+    text: '¿Desea eliminar el tercer paso de verificación de este empleado?',
+    icon: 'warning',
+    showDenyButton: true,
+    confirmButtonText: 'Si',
+    denyButtonText: 'Cancelar',
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    background: '#F7F0E9',
+    confirmButtonColor: 'green',
+  }).then(function (value) {
+    if (value.isConfirmed) {
+      let form = new FormData();
+      form.append('id', id);
+      fetch(API_EMPLEADOS + 'eliminarQRAUTH', {
+        method: 'post',
+        body: form
+      }).then(function (request) {
+        // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+        if (request.ok) {
+          // Se obtiene la respuesta en formato JSON.
+          request.json().then(function (response) {
+            // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+            if (response.status) {
+              //Se obtiene la respuesta y reinicia los empleado
+              // cargan nuevamente las filas en la tabla de la vista después de guardar un registro y se muestra un mensaje de éxito.
+              readRowsLimit(API_EMPLEADOS, 0);
+            } else {
+              sweetAlert(2, response.exception, null);
+            }
+          });
+        } else {
+          console.log(request.status + ' ' + request.statusText);
+        }
+      });
+    }
+  });
+}
+
+//Función para los reportes
+function abrirReporte(tipo) {
+  var rpm = false
+  if (navigator.userAgent.match(/Android/i)) {
+    rpm = true;
+  }
+  switch (tipo) {
+    case 1:
+      if (!rpm) {
+        window.open('../api/reports/accesoEmpleadosEmp.php');
+      } else {
+        PRELOADER.style.display = 'block';
+        document.getElementById('reporteNA').classList.toggle('disabled');
+        document.getElementById('reporteFM').classList.toggle('disabled');
+        fetch(SERVER + 'reports/accesoEmpleadosEmpM.php', {
+          method: 'get'
+        }).then(function (request) {
+          // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+          if (request.ok) {
+            // Se obtiene la respuesta en formato JSON.
+            request.json().then(function (response) {
+              // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+              if (response.status) {
+                sweetAlert(1, response.message, null);
+              } else {
+                sweetAlert(2, response.exception, null);
+              }
+              PRELOADER.style.display = 'none';
+              document.getElementById('reporteNA').classList.toggle('disabled');
+              document.getElementById('reporteFM').classList.toggle('disabled');
+            });
+          } else {
+            console.log(request.status + ' ' + request.statusText);
+          }
+        });
+      }
+      break;
+    case 2:
+      if (!rpm) {
+        window.open('../api/reports/accesoEmpleadosEmpF.php');
+      } else {
+        PRELOADER.style.display = 'block';
+        document.getElementById('reporteNA').classList.toggle('disabled');
+        document.getElementById('reporteFM').classList.toggle('disabled');
+        fetch(SERVER + 'reports/accesoEmpleadosFM.php', {
+          method: 'get'
+        }).then(function (request) {
+          // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+          if (request.ok) {
+            // Se obtiene la respuesta en formato JSON.
+            request.json().then(function (response) {
+              // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+              if (response.status) {
+                sweetAlert(1, response.message, null);
+              } else {
+                sweetAlert(2, response.exception, null);
+              }
+              PRELOADER.style.display = 'none';
+              document.getElementById('reporteNA').classList.toggle('disabled');
+              document.getElementById('reporteFM').classList.toggle('disabled');
+            });
+          } else {
+            console.log(request.status + ' ' + request.statusText);
+          }
+        });
+      }
+      break;
+    default:
+      window.open('../api/reports/accesoEmpleadosEmp.php');
+      sweetAlert(2, 'Se redirigio a un pdf, pero no se reconocio el dispositivo. Si no lo ve esque no se reconce que esta en smarthPone');
+      break;
+  }
+}
+
+//href="../api/reports/accesoEmpleadosEmpF.php"
+//href="../api/reports/accesoEmpleadosEmp.php" target="_blank"
+document.getElementById('ocultarmostrar_contraseñas').addEventListener("click", function () {
+  if (CONTRA.type == "password") {
+    CONTRA.type = "text"
+    CONTRAC.type = "text"
+    document.getElementById('ocultarmostrar_contraseñas').innerText = "visibility_off"
+  } else {
+    CONTRA.type = "text".type = "password"
+    CONTRAC.type = "text".type = "password"
+    document.getElementById('ocultarmostrar_contraseñas').innerText = "visibility"
+  }
 });

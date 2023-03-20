@@ -1,5 +1,6 @@
 // Constante para establecer la ruta y parámetros de comunicación con la API.
 const API_EMPRESAS = SERVER + 'dashboard/empresas.php?action=';
+const ENDPOINT_EMPRESAS = SERVER + 'dashboard/empresas.php?action=readEmprAllUser';
 const API_GLBVAR = SERVER + 'variablesgb.php?action=';
 
 //Opciones para los modal
@@ -47,6 +48,7 @@ function limpiarEliminarEmpresas() {
 };
 //Inicializando componentes de Materialize
 document.addEventListener('DOMContentLoaded', function () {
+    PRELOADER.style.display = 'block';
     M.Sidenav.init(document.querySelectorAll('.sidenav'));
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
     M.Modal.init(document.querySelectorAll('#modalAnadirEmpresa'), opcionesModalAñadir);
@@ -140,6 +142,22 @@ hastatop.addEventListener('click', function () {
         behavior: "smooth"
     })
 });
+
+//Colocamos limitación en inputs privados para no copiar
+modNITEmpr.oncopy = function (e) {
+    e.preventDefault();
+}
+
+modNumeroContacto.oncopy = function (e) {
+    e.preventDefault();
+}
+
+MODCORREO.oncopy = function (e) {
+    e.preventDefault();
+}
+
+
+
 //Solo números en el input de número de contacto
 var numeroContacto = document.getElementById('numero-empr');
 numeroContacto.addEventListener('keypress', function (e) {
@@ -350,10 +368,12 @@ function comprobarAmin() {
             // Se obtiene la respuesta en formato JSON.
             request.json().then(function (response) {
                 // Se comprueba si hay no hay una session para admins
-                if (!response.status) {
-                    ANADIREMPRESABTN.classList.add('hide');
+                if (response.cambioCtr) {
+                    location.href = 'index.html';
+                } else if (!response.status) {
+                    ANADIREMPRESABTN.remove();
                     document.querySelectorAll('.eliminarbtn').forEach(element =>
-                        element.classList.add('hide')
+                        element.parentNode.removeChild(element)
                     );
                 } else {
                     ANADIREMPRESABTN.classList.remove('hide');
@@ -410,6 +430,7 @@ function fillTable(dataset) {
     // Se inicializa el componente Tooltip para que funcionen las sugerencias textuales.
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
     comprobarAmin();
+    predecirAdelante();
 }
 
 //Funciones para la páginación
@@ -426,6 +447,26 @@ function predecirAdelante() {
     console.log("El limite sería: " + limit);
     //Ejecutamos el metodo de la API para saber si hay productos y esta ejecutará una función que oculte o muestre el boton de adelante
     predictLImit(API_EMPRESAS, limit);
+    let limit2 = ( (Number(BOTONNUMEROPAGI.innerHTML)+1) * 6) - 6;
+    predictButton(API_EMPRESAS, limit2);
+}
+
+function ocultarButton2(cases) {
+    switch (cases) {
+        case 1:
+            BOTONNUMEROPAGF.parentNode.parentNode.classList.add('hide');
+            document.getElementById('pagpoints').parentNode.classList.add('hide');
+            break;
+        case 2:
+            document.getElementById('contenedor_pags').classList.add('hide');
+            let h = document.createElement("h3");
+            let text = document.createTextNode("No hay empresas registradas");
+            h.appendChild(text);
+            EMPRESASCONT.innerHTML = "";
+            EMPRESASCONT.append(h);
+        default:
+            break;
+    }
 }
 
 function ocultarMostrarAdl(result) {
@@ -441,6 +482,8 @@ function ocultarMostrarAdl(result) {
 
 //Boton de atras
 BOTONATRAS.addEventListener('click', function () {
+    BOTONNUMEROPAGF.parentNode.parentNode.classList.remove('hide');
+    document.getElementById('pagpoints').parentNode.classList.remove('hide');
     //Volvemos a mostrár el boton de página adelante
     BOTONADELANTE.style.display = 'block';
     //Obtenemos el número de la página inicial
@@ -477,6 +520,7 @@ BOTONADELANTE.addEventListener('click', function () {
 //Función que realizará los botones con numero de la páginacion
 document.querySelectorAll(".contnpag").forEach(el => {
     el.addEventListener("click", e => {
+        PRELOADER.style.display = 'block';
         //Se obtiene el numero dentro del span
         let number = Number(el.lastElementChild.textContent);
         console.log('numero seleccionado ' + number);
@@ -485,11 +529,14 @@ document.querySelectorAll(".contnpag").forEach(el => {
         //Se ejecuta la recarga de datos enviando la variable de topAct
         //Ejecutamos la función para predecir si habrá un boton de adelante
         readRowsLimit(API_EMPRESAS, limit);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
+        document.getElementById('numbe_paginc').innerText = number;
     });
 });
 
 //Función del buscador dinamico
 BUSCADORINP.addEventListener('keyup', function (e) {
+    //Se muestra el cargador
+    PRELOADER.style.display = 'block';
     if (BUSCADORINP.value == '') {
         readRowsLimit(API_EMPRESAS, 0);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
     } else {
@@ -501,6 +548,7 @@ BUSCADORINP.addEventListener('keyup', function (e) {
 
 //Función cuando el buscador no encuentra los datos
 function noDatos() {
+    PRELOADER.style.display = 'none';
     let h = document.createElement("h3");
     let text = document.createTextNode("0 resultados");
     h.appendChild(text);
@@ -541,7 +589,11 @@ function modEmp(id) {
                     M.textareaAutoResize(MODDIRECCION);
                     if (MODANIT.value.length <= 10) {
                         document.getElementById('estadoEmpM').checked = false;
+                        //Es empresa juridica
+                        modNITEmpr.setAttribute('maxlength', 10);
                     } else {
+                        //Es empresa juridica
+                        modNITEmpr.setAttribute('maxlength', 17);
                         document.getElementById('estadoEmpM').checked = true;
                     }
                     //Se oculta el cargador
@@ -572,6 +624,7 @@ function redFold(id) {
     // Petición para obtener en nombre del usuario que ha iniciado sesión.
     // Se define un objeto con los datos del registro seleccionado.
     const form = new FormData();
+    PRELOADER.style.display = 'block';
     form.append('id', id);
     fetch(API_GLBVAR + 'setIdEmpresa', {
         method: 'post',
@@ -588,6 +641,7 @@ function redFold(id) {
                     sweetAlert(3, 'No se pudo redirigir a los folders de las empresas', null);
                 }
             });
+            PRELOADER.style.display = 'none';
         } else {
             console.log(request.status + ' ' + request.statusText);
         }
@@ -615,3 +669,50 @@ document.getElementById('estadoEmpM').addEventListener('change', function () {
         modNITEmpr.setAttribute('maxlength', 10);
     }
 });
+
+//Programación para los reportes
+document.getElementById('reporteRFN').addEventListener('click', function () {
+    obtenerEmpresaRFN();
+    fillSelectBrowser(ENDPOINT_EMPRESAS, 'swal-empresa', 'Selecciona una empresa', null, true);
+});
+
+function obtenerEmpresaRFN() {
+    (async () => {
+
+        const { value: formValues } = await Swal.fire({
+            background: '#F7F0E9',
+            confirmButtonColor: 'black',
+            showDenyButton: true,
+            denyButtonText: '<i class="material-icons">cancel</i> Cancelar',
+            icon: 'info',
+            title: 'Seleccione la empresa de quien desea obtener el reporte',
+            html:
+                ` 
+                <select class="browser-default" id="swal-empresa">
+                    
+                </select>              
+            `,
+            focusConfirm: false,
+            confirmButtonText:
+                '<i class="material-icons">assignment</i> Generar reporte',
+            preConfirm: () => {
+                return [
+                    document.getElementById('swal-empresa').value,
+                ]
+            }
+        })
+        if (formValues) {
+            if (formValues[0] != 'Selecciona una empresa') {
+                //Swal.fire(JSON.stringify(formValues[0]))
+                let params = '?idemp=' + formValues[0];
+                // Se establece la ruta del reporte en el servidor.
+                let url = SERVER + 'reports/reportFoldEmpX.php';
+                // Se abre el reporte en una nueva pestaña del navegador web.
+                window.open(url + params);
+            } else {
+                sweetAlert(3, 'Debe seleccionar una empresa', null);
+            }
+
+        }
+    })()
+}

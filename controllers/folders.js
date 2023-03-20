@@ -55,6 +55,7 @@ function limpiarEliminarFolders() {
 };
 //Inicializando componentes de Materialize
 document.addEventListener('DOMContentLoaded', function () {
+    PRELOADER.style.display = 'block';
     M.Sidenav.init(document.querySelectorAll('.sidenav'));
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
     M.Modal.init(document.querySelectorAll('#modalAnadirFolder'), opcionesModalAñadir);
@@ -234,7 +235,9 @@ function comprobarEmpresa() {
             // Se obtiene la respuesta en formato JSON.
             request.json().then(function (response) {
                 // Se comprueba si hay no hay una session para admins
-                if (response.status) {
+                if(response.cambioCtr){
+                    location.href = 'index.html';
+                }else if (response.status) {
                     //Seteamos la variable global de empresa
                     idEmpresa = response.id_empresa;
                     console.log(idEmpresa);
@@ -262,9 +265,9 @@ function comprobarAmin() {
             request.json().then(function (response) {
                 // Se comprueba si hay no hay una session para admins
                 if (!response.status) {
-                    ANADIRFOLDERBTN.classList.add('hide');
+                    ANADIRFOLDERBTN.remove();
                     document.querySelectorAll('.eliminarbtn').forEach(elemen =>
-                        elemen.classList.add('hide')
+                        elemen.parentNode.removeChild(elemen)
                     );
                 } else {
                     ANADIRFOLDERBTN.classList.remove('hide');
@@ -320,6 +323,7 @@ function fillTable(dataset) {
     // Se inicializa el componente Tooltip para que funcionen las sugerencias textuales.
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
     comprobarAmin();
+    predecirAdelante();
 }
 
 //Funciones para la páginación
@@ -336,6 +340,26 @@ function predecirAdelante() {
     console.log("El limite sería: " + limit);
     //Ejecutamos el metodo de la API para saber si hay productos y esta ejecutará una función que oculte o muestre el boton de adelante
     predictLImit(API_FOLDER, limit);
+    let limit2 = ( (Number(BOTONNUMEROPAGI.innerHTML)+1) * 6) - 6;
+    predictButton(API_FOLDER, limit2);
+}
+
+function ocultarButton2(cases) {
+    switch (cases) {
+        case 1:
+            BOTONNUMEROPAGF.parentNode.parentNode.classList.add('hide');
+            document.getElementById('pagpoints').parentNode.classList.add('hide');
+            break;
+        case 2:
+            document.getElementById('contenedor_pags').classList.add('hide');
+            let h = document.createElement("h3");
+            let text = document.createTextNode("Empresa vacía");
+            h.appendChild(text);
+            FODLERCONT.innerHTML = "";
+            FODLERCONT.append(h);
+        default:
+            break;
+    }
 }
 
 function ocultarMostrarAdl(result) {
@@ -351,6 +375,8 @@ function ocultarMostrarAdl(result) {
 
 //Boton de atras
 BOTONATRAS.addEventListener('click', function () {
+    BOTONNUMEROPAGF.parentNode.parentNode.classList.remove('hide');
+    document.getElementById('pagpoints').parentNode.classList.remove('hide');
     //Volvemos a mostrár el boton de página adelante
     BOTONADELANTE.style.display = 'block';
     //Obtenemos el número de la página inicial
@@ -387,6 +413,7 @@ BOTONADELANTE.addEventListener('click', function () {
 //Función que realizará los botones con numero de la páginacion
 document.querySelectorAll(".contnpag").forEach(el => {
     el.addEventListener("click", e => {
+        PRELOADER.style.display = 'block';
         //Se obtiene el numero dentro del span
         let number = Number(el.lastElementChild.textContent);
         console.log('numero seleccionado ' + number);
@@ -396,11 +423,13 @@ document.querySelectorAll(".contnpag").forEach(el => {
         //Ejecutamos la función para predecir si habrá un boton de adelante
         //Ejecutamos el metodo de la API para saber si hay productos y esta ejecutará una función que oculte o muestre el boton de adelante
         readRowsLimit(API_FOLDER, limit);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
+        document.getElementById('numbe_paginc').innerText = number;
     });
 });
 
 //Función del buscador dinamico
 BUSCADORINP.addEventListener('keyup', function (e) {
+    PRELOADER.style.display = 'block';
     if (BUSCADORINP.value == '') {
         readRowsLimit(API_FOLDER, 0);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
     } else {
@@ -412,6 +441,7 @@ BUSCADORINP.addEventListener('keyup', function (e) {
 
 //Función cuando el buscador no encuentra los datos
 function noDatos() {
+    PRELOADER.style.display = 'none';
     let h = document.createElement("h3");
     let text = document.createTextNode("0 resultados");
     h.appendChild(text);
@@ -470,6 +500,7 @@ function delFol(id) {
 //Función para setear el id de la empresa para el folder
 function redArc(id) {
     // Se define un objeto con los datos del registro seleccionado.
+    PRELOADER.style.display = 'block';
     const form = new FormData();
     form.append('id', id);
     fetch(API_GLBVAR + 'setIdFolder', {
@@ -482,10 +513,14 @@ function redArc(id) {
             request.json().then(function (response) {
                 // Se comprueba si hay no hay una session para admins
                 if (response.status) {
+                    // Se define un objeto con los datos del registro seleccionado.
+                    PRELOADER.style.display = 'none';
                     console.log(response.id_folder);
                     location.href = 'archivos.html';
                 } else {
                     sweetAlert(3, 'No se pudo redirigir a los folders de las empresas', null);
+                    // Se define un objeto con los datos del registro seleccionado.
+                    PRELOADER.style.display = 'none';
                 }
             });
         } else {

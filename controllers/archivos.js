@@ -55,6 +55,7 @@ var opcionesModal = {
 }
 //Inicializando componentes de Materialize
 document.addEventListener('DOMContentLoaded', function () {
+    PRELOADER.style.display = 'block';
     M.Sidenav.init(document.querySelectorAll('.sidenav'));
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
     M.Modal.init(document.querySelectorAll('.modal'), opcionesModal);
@@ -153,51 +154,56 @@ añadirArchivobtn.addEventListener('click', function () {
     //Creamos arreglo de componentes para enviarlos a una función que los evaluará
     let arregloVCV = [nombreEmpresa, nombreFolder];
     if (validarCamposVacios(arregloVCV) != false) {
-        if (archivoSubido.value.length != 0 || IDARCH.value.length !=0) {
-            mensaje.style.display = 'none';
-            preloaderAñadirArchivo.style.display = 'block';
-            añadirArchivobtn.classList.add("disabled");
-            // Se define una variable para establecer la acción a realizar en la API.
-            let action = '';
-            // Se comprueba si el campo oculto del formulario esta seteado para actualizar, de lo contrario será para crear.
-            (IDARCH.value) ? action = 'update' : action = 'create';
-            // Petición para obtener en nombre del usuario que ha iniciado sesión.
-            let form = new FormData(document.getElementById('archForm'));
-            form.append('nombre', nombreArchivoInp.value);
-            let date = new Date();
-            let fecha = date.toISOString().split('T')[0];
-            form.append('fecha', fecha);
-            form.append('id', IDARCH.value);
-            console.log(form.get('nombre'))
-            fetch(API_ARCHIVO + action, {
-                method: 'post',
-                body: form
-            }).then(function (request) {
-                // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
-                if (request.ok) {
-                    // Se obtiene la respuesta en formato JSON.
-                    request.json().then(function (response) {
-                        // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
-                        if (response.status) {
-                            // Se cierra la caja de dialogo (modal) del formulario.
-                            M.Modal.getInstance(MODALARCH).close();
-                            // Se cargan nuevamente las filas en la tabla de la vista después de guardar un registro y se muestra un mensaje de éxito.
-                            readRowsLimit(API_ARCHIVO, 0);
-                            sweetAlert(1, response.message, null);
-                        } else {
-                            //Ocultamos el preloader
-                            preloaderAñadirArchivo.style.display = 'none';
-                            //Habilitamos el boton de añadir
-                            añadirArchivobtn.classList.remove("disabled");
-                            //Ocultamos el mensaje
-                            mensaje.style.display = 'none';
-                            sweetAlert(2, response.exception, null);
-                        }
-                    });
-                } else {
-                    console.log(request.status + ' ' + request.statusText);
-                }
-            });
+        if (archivoSubido.value.length != 0 || IDARCH.value.length != 0) {
+            if (nombreArchivoInp.value.length <= 15) {
+                mensaje.style.display = 'none';
+                preloaderAñadirArchivo.style.display = 'block';
+                añadirArchivobtn.classList.add("disabled");
+                // Se define una variable para establecer la acción a realizar en la API.
+                let action = '';
+                // Se comprueba si el campo oculto del formulario esta seteado para actualizar, de lo contrario será para crear.
+                (IDARCH.value) ? action = 'update' : action = 'create';
+                // Petición para obtener en nombre del usuario que ha iniciado sesión.
+                let form = new FormData(document.getElementById('archForm'));
+                form.append('nombre', nombreArchivoInp.value);
+                let date = new Date();
+                let fecha = date.toISOString().split('T')[0];
+                form.append('fecha', fecha);
+                form.append('id', IDARCH.value);
+                console.log(form.get('nombre'))
+                fetch(API_ARCHIVO + action, {
+                    method: 'post',
+                    body: form
+                }).then(function (request) {
+                    // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+                    if (request.ok) {
+                        // Se obtiene la respuesta en formato JSON.
+                        request.json().then(function (response) {
+                            // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+                            if (response.status) {
+                                // Se cierra la caja de dialogo (modal) del formulario.
+                                M.Modal.getInstance(MODALARCH).close();
+                                // Se cargan nuevamente las filas en la tabla de la vista después de guardar un registro y se muestra un mensaje de éxito.
+                                readRowsLimit(API_ARCHIVO, 0);
+                                sweetAlert(1, response.message, null);
+                            } else {
+                                //Ocultamos el preloader
+                                preloaderAñadirArchivo.style.display = 'none';
+                                //Habilitamos el boton de añadir
+                                añadirArchivobtn.classList.remove("disabled");
+                                //Ocultamos el mensaje
+                                mensaje.style.display = 'none';
+                                sweetAlert(2, response.exception, null);
+                            }
+                        });
+                    } else {
+                        console.log(request.status + ' ' + request.statusText);
+                    }
+                });
+            } else{
+                mensaje.style.display = 'block';
+                mensaje.innerText = '¡No olvides añadir un archivo con un nombre menor a 15 caracteres!';
+            }
         } else {
             mensaje.style.display = 'block';
             mensaje.innerText = '¡No olvides añadir un archivo!';
@@ -342,10 +348,12 @@ function comprobarAmin() {
             // Se obtiene la respuesta en formato JSON.
             request.json().then(function (response) {
                 // Se comprueba si hay no hay una session para admins
-                if (!response.status) {
-                    ANADIRARCHBTN.classList.add('hide');
+                if (response.cambioCtr) {
+                    location.href = 'index.html';
+                } else if (!response.status) {
+                    ANADIRARCHBTN.remove();
                     document.querySelectorAll('.eliminarbtn').forEach(elemen =>
-                        elemen.classList.add('hide')
+                        elemen.parentNode.removeChild(elemen)
                     );
                 } else {
                     ANADIRARCHBTN.classList.remove('hide');
@@ -391,7 +399,7 @@ function fillTable(dataset) {
                     <a onclick="modArch(${row.id_archivo})" class="tooltipped eliminarbtn" data-position="top"
                     data-tooltip="Modificar archivo"><img class="icono-modificar"
                     src="../resources/icons/modificar-archivo.png"></a>
-                    <a href="../api/documents/archivosFolders/${row.nombre_archivo}" class="tooltipped" data-position="top"
+                    <a href="${SERVER}documents/archivosFolders/${row.nombre_archivo}" class="tooltipped hide-on-small-only" data-position="top"
                     data-tooltip="Descargar archivo" download="${row.nombre_original}"><img class="icono-descarga"
                     src="../resources/icons/descarga.png"></a>
                     <a href="../api/documents/archivosFolders/${row.nombre_archivo}" class="tooltipped" data-position="top"
@@ -407,7 +415,7 @@ function fillTable(dataset) {
                     <a onclick="modArch(${row.id_archivo})" class="tooltipped eliminarbtn" data-position="top"
                     data-tooltip="Modificar archivo"><img class="icono-modificar"
                     src="../resources/icons/modificar-archivo.png"></a>
-                    <a href="../api/documents/archivosFolders/${row.nombre_archivo}" class="tooltipped" data-position="top"
+                    <a href="${SERVER}documents/archivosFolders/${row.nombre_archivo}" class="tooltipped hide-on-small-only" data-position="top"
                     data-tooltip="Descargar archivo" download="${row.nombre_original}"><img class="icono-descarga"
                     src="../resources/icons/descarga.png"></a>
                 </td>
@@ -421,6 +429,7 @@ function fillTable(dataset) {
     // Se inicializa el componente Tooltip para que funcionen las sugerencias textuales.
     M.Tooltip.init(document.querySelectorAll('.tooltipped'));
     comprobarAmin();
+    predecirAdelante();
 }
 
 //Funciones para la páginación
@@ -436,7 +445,28 @@ function predecirAdelante() {
     let limit = (paginaFinal * 5) - 5;
     console.log("El limite sería: " + limit);
     //Ejecutamos el metodo de la API para saber si hay productos y esta ejecutará una función que oculte o muestre el boton de adelante
+    let limit2 = ( (Number(BOTONNUMEROPAGI.innerHTML)+1) * 5) - 5;
+    predictButton(API_ARCHIVO, limit2);
     predictLImit(API_ARCHIVO, limit);
+    
+}
+
+function ocultarButton2(cases) {
+    switch (cases) {
+        case 1:
+            BOTONNUMEROPAGF.parentNode.parentNode.classList.add('hide');
+            document.getElementById('pagpoints').parentNode.classList.add('hide');
+            break;
+        case 2:
+            document.getElementById('contenedor_pags').classList.add('hide');
+            let h = document.createElement("h3");
+            let text = document.createTextNode("Folder vacío");
+            h.appendChild(text);
+            ARCHCONT.innerHTML = "";
+            ARCHCONT.append(h);
+        default:
+            break;
+    }
 }
 
 function ocultarMostrarAdl(result) {
@@ -452,6 +482,8 @@ function ocultarMostrarAdl(result) {
 
 //Boton de atras
 BOTONATRAS.addEventListener('click', function () {
+    BOTONNUMEROPAGF.parentNode.parentNode.classList.remove('hide');
+    document.getElementById('pagpoints').parentNode.classList.remove('hide');
     //Volvemos a mostrár el boton de página adelante
     BOTONADELANTE.style.display = 'block';
     //Obtenemos el número de la página inicial
@@ -480,7 +512,7 @@ BOTONADELANTE.addEventListener('click', function () {
     if (BOTONADELANTE.style.display = 'block') {
         //Sumamos la cantidad de página que queramos que avance, en este caso decidi 2 para el botoni y 3 para el botonf
         BOTONNUMEROPAGF.innerHTML = Number(BOTONNUMEROPAGI.innerHTML) + 1;
-    }else{
+    } else {
         BOTONNUMEROPAGI.innerHTML = Number(BOTONNUMEROPAGI.innerHTML) - 2;
     }
 });
@@ -488,6 +520,7 @@ BOTONADELANTE.addEventListener('click', function () {
 //Función que realizará los botones con numero de la páginacion
 document.querySelectorAll(".contnpag").forEach(el => {
     el.addEventListener("click", e => {
+        PRELOADER.style.display = 'block';
         //Se obtiene el numero dentro del span
         let number = Number(el.lastElementChild.textContent);
         console.log('numero seleccionado ' + number);
@@ -496,11 +529,13 @@ document.querySelectorAll(".contnpag").forEach(el => {
         //Se ejecuta la recarga de datos enviando la variable de topAct
         //Ejecutamos la función para predecir si habrá un boton de adelante
         readRowsLimit(API_ARCHIVO, limit);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
+        document.getElementById('numbe_paginc').innerText = number;
     });
 });
 
 //Función del buscador dinamico
 BUSCADORINP.addEventListener('keyup', function (e) {
+    PRELOADER.style.display = 'block';
     if (BUSCADORINP.value == '') {
         readRowsLimit(API_ARCHIVO, 0);//Enviamos el metodo a buscar los datos y como limite 0 por ser el inicio
     } else {
@@ -512,6 +547,7 @@ BUSCADORINP.addEventListener('keyup', function (e) {
 
 //Función cuando el buscador no encuentra los datos
 function noDatos() {
+    PRELOADER.style.display = 'none';
     let h = document.createElement("h3");
     let text = document.createTextNode("0 resultados");
     h.appendChild(text);

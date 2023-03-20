@@ -12,6 +12,9 @@ const API = SERVER + 'dashboard/admins.php?action=';
     VARIABLES PARA LAS GRAFICAS
 */
 var polarChart;
+var barChart;
+var lineChart;
+var donutChart;
 /*
 *   Función para obtener todos los registros disponibles en los mantenimientos de tablas (operación read).
 *
@@ -281,7 +284,7 @@ function barGraph(canvas, xAxis, yAxis, legend, title) {
             datasets: [{
                 label: legend,
                 data: yAxis,
-                borderColor: '#000000',
+                borderColor: colors,
                 borderWidth: 1,
                 backgroundColor: colors,
                 barPercentage: 1
@@ -351,7 +354,7 @@ function pieGraph(canvas, legends, values, title) {
 function logOut() {
     Swall.fire({
         title: 'Advertencia',
-        text: '¿Desea cerrar sesion?',
+        text: '¿Desea cerrar sesión?',
         icon: 'warning',
         showDenyButton: true,
         confirmButtonText: 'Si',
@@ -412,6 +415,14 @@ function readRowsLimit(api, limit) {
                     fillTable(response.dataset);
                 } else {
                     sweetAlert(4, response.exception, null);
+                    if (limit == 0) {
+                        ocultarButton2(2);
+                    }
+                    try{
+                        PRELOADER.style.display = 'none';
+                    }catch(e){
+
+                    }                   
                 }
             });
         } else {
@@ -554,7 +565,7 @@ function dynamicSearcher2(api, form) {
                 if (response.status) {
                     // Se envían los datos a la función del controlador para que llene la tabla en la vista y se muestra un mensaje de éxito.
                     fillTable(response.dataset);
-                } else{
+                } else {
                     noDatos();
                 }
             });
@@ -573,7 +584,7 @@ function dynamicSearcher2(api, form) {
 */
 function dynamicSearcherlimit(api, form, limit) {
     let formsl = new FormData(document.getElementById(form));
-    formsl.append('limit',limit);
+    formsl.append('limit', limit);
     fetch(api + 'search', {
         method: 'post',
         body: formsl
@@ -586,7 +597,7 @@ function dynamicSearcherlimit(api, form, limit) {
                 if (response.status) {
                     // Se envían los datos a la función del controlador para que llene la tabla en la vista y se muestra un mensaje de éxito.
                     fillTable(response.dataset);
-                } else{
+                } else {
                     noDatos();
                 }
             });
@@ -725,7 +736,7 @@ function logOut() {
 *
 *   Retorno: ninguno.
 */
-function fillSelect2(endpoint, select,indicacion, selected, disable) {
+function fillSelect2(endpoint, select, indicacion, selected, disable) {
     fetch(endpoint, {
         method: 'get'
     }).then(function (request) {
@@ -737,11 +748,11 @@ function fillSelect2(endpoint, select,indicacion, selected, disable) {
                 // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
                 if (response.status) {
                     // Se añade la indicación pero se evalua si se desea deshabilitarla o no.
-                    if(disable){
-                      content += '<option disabled selected>'+indicacion+'</option>';  
-                    }else{
-                        content += '<option selected>'+indicacion+'</option>';
-                    } 
+                    if (disable) {
+                        content += '<option disabled selected>' + indicacion + '</option>';
+                    } else {
+                        content += '<option selected>' + indicacion + '</option>';
+                    }
                     // Se recorre el conjunto de registros devuelto por la API (dataset) fila por fila a través del objeto row.
                     response.dataset.map(function (row) {
                         // Se obtiene el dato del primer campo de la sentencia SQL (valor para cada opción).
@@ -854,7 +865,8 @@ function dynamicSearcher3Filter(api, form) {
                     // Se envían los datos a la función del controlador para que llene la tabla en la vista y se muestra un mensaje de éxito.
                     fillTable(response.dataset);
                 } else {
-                    sweetAlert(2,response.exception,null);
+                    sweetAlert(2, response.exception, null);
+                    noDatos();
                 }
             });
         } else {
@@ -885,7 +897,12 @@ function dynamicSearcher3(api, form) {
                 } else {
                     // sweetAlert(1, response.message, null);
                     noDatos2();
-                    // sweetAlert(2, response.exception, null);
+                    // Ocultamos el bloqueado si es que esta
+                    try{
+                        PRELOADER.style.display = 'none';
+                    }catch(e){
+
+                    }
                 }
             });
         } else {
@@ -904,7 +921,7 @@ function dynamicSearcher3(api, form) {
 */
 function predictLImitSearch(api, form, limit) {
     let formss = new FormData(document.getElementById(form));
-    formss.append('limit',limit);
+    formss.append('limit', limit);
     fetch(api + 'search', {
         method: 'post',
         body: formss
@@ -975,7 +992,7 @@ function polarAreaGraphP(canvas, xAxis, yAxis, legend, title) {
     // Se establece el contexto donde se mostrará el gráfico, es decir, se define la etiqueta canvas a utilizar.
     const context = document.getElementById(canvas).getContext('2d');
     // Se crea una instancia para generar el gráfico con los datos recibidos.
-    if(polarChart){
+    if (polarChart) {
         polarChart.destroy();
     }
     polarChart = new Chart(context, {
@@ -1001,6 +1018,318 @@ function polarAreaGraphP(canvas, xAxis, yAxis, legend, title) {
                     display: true
                 }
             }
+        }
+    });
+}
+
+/*FILL SELECT para select no de materialize*/
+
+function fillSelectBrowser(endpoint, select, indicacion, selected, disable) {
+    fetch(endpoint, {
+        method: 'get'
+    }).then(function (request) {
+        // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+        if (request.ok) {
+            // Se obtiene la respuesta en formato JSON.
+            request.json().then(function (response) {
+                let content = '';
+                // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+                if (response.status) {
+                    // Se añade la indicación pero se evalua si se desea deshabilitarla o no.
+                    if (disable) {
+                        content += '<option disabled selected>' + indicacion + '</option>';
+                    } else {
+                        content += '<option selected>' + indicacion + '</option>';
+                    }
+                    // Se recorre el conjunto de registros devuelto por la API (dataset) fila por fila a través del objeto row.
+                    response.dataset.map(function (row) {
+                        // Se obtiene el dato del primer campo de la sentencia SQL (valor para cada opción).
+                        value = Object.values(row)[0];
+                        // Se obtiene el dato del segundo campo de la sentencia SQL (texto para cada opción).
+                        text = Object.values(row)[1];
+                        // Se verifica si el valor de la API es diferente al valor seleccionado para enlistar una opción, de lo contrario se establece la opción como seleccionada.
+                        if (value != selected) {
+                            content += `<option value="${value}">${text}</option>`;
+                        } else {
+                            content += `<option value="${value}" selected>${text}</option>`;
+                        }
+                    });
+                } else {
+                    content += '<option>No hay opciones disponibles</option>';
+                }
+                // Se agregan las opciones a la etiqueta select mediante su id.
+                document.getElementById(select).innerHTML = content;
+            });
+        } else {
+            console.log(request.status + ' ' + request.statusText);
+        }
+    });
+}
+
+/*Función de la gráfica de barra parametrizada*/
+function barGraphParametrizado(canvas, xAxis, yAxis, legend, title) {
+    // Se declara un arreglo para guardar códigos de colores en formato hexadecimal.
+    if (barChart) {
+        barChart.destroy();
+    }
+    let colors = [];
+    // Se generan códigos hexadecimales de 6 cifras de acuerdo con el número de datos a mostrar y se agregan al arreglo.
+    for (i = 0; i < xAxis.length; i++) {
+        colors.push('#' + (Math.random().toString(16)).substring(2, 8));
+    }
+    // Se establece el contexto donde se mostrará el gráfico, es decir, se define la etiqueta canvas a utilizar.
+    const context = document.getElementById(canvas).getContext('2d');
+    // Se crea una instancia para generar el gráfico con los datos recibidos.
+    barChart = new Chart(context, {
+        type: 'bar',
+        data: {
+            labels: xAxis,
+            datasets: [{
+                label: legend,
+                data: yAxis,
+                borderColor: colors,
+                borderWidth: 1,
+                backgroundColor: colors,
+                barPercentage: 1
+            }]
+        },
+        options: {
+            aspectRatio: 1,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+function fillSelectBugMtz(endpoint, select, selected) {
+    fetch(endpoint, {
+        method: 'get'
+    }).then(function (request) {
+        // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+        if (request.ok) {
+            // Se obtiene la respuesta en formato JSON.
+            request.json().then(function (response) {
+                let content = '';
+                // Se comprueba si la respuesta es satisfactoria, de lo contrario se muestra un mensaje con la excepción.
+                if (response.status) {
+                    // Si no existe un valor para seleccionar, se muestra una opción para indicarlo.
+                    if (!selected) {
+                        content += '<option disabled selected>Seleccione una opción</option>';
+                    }
+                    // Se recorre el conjunto de registros devuelto por la API (dataset) fila por fila a través del objeto row.
+                    response.dataset.map(function (row) {
+                        // Se obtiene el dato del primer campo de la sentencia SQL (valor para cada opción).
+                        value = Object.values(row)[0];
+                        // Se obtiene el dato del segundo campo de la sentencia SQL (texto para cada opción).
+                        text = Object.values(row)[1];
+                        // Se verifica si el valor de la API es diferente al valor seleccionado para enlistar una opción, de lo contrario se establece la opción como seleccionada.
+                        if (value != selected) {
+                            content += `<option value="${value}">${text}</option>`;
+                        } else {
+                            content += `<option value="${value}" selected>${text}</option>`;
+                        }
+                    });
+                } else {
+                    content += '<option>No hay opciones disponibles</option>';
+                }
+                // Se agregan las opciones a la etiqueta select mediante su id.
+                document.getElementById(select).innerHTML = content;
+                // Se inicializa el componente Select del formulario para que muestre las opciones.
+                M.FormSelect.init(document.querySelectorAll('#' + select));
+            });
+        } else {
+            console.log(request.status + ' ' + request.statusText);
+        }
+    });
+}
+
+/*
+*   Función para generar un gráfico de lineas. Requiere el archivo chart.js. Para más información https://www.chartjs.org/
+*
+*   Parámetros: canvas (identificador de la etiqueta canvas), xAxis (datos para el eje X), yAxis (datos para el eje Y), legend (etiqueta para los datos) y title (título del gráfico).
+*
+*   Retorno: ninguno.
+*/
+function lineGraph(canvas, xAxis, yAxis, legend, title) {
+    // Se declara un arreglo para guardar códigos de colores en formato hexadecimal.
+    let colors = [];
+    // Se generan códigos hexadecimales de 6 cifras de acuerdo con el número de datos a mostrar y se agregan al arreglo.
+    for (i = 0; i < xAxis.length; i++) {
+        colors.push('#' + (Math.random().toString(16)).substring(2, 8));
+    }
+    // Se establece el contexto donde se mostrará el gráfico, es decir, se define la etiqueta canvas a utilizar.
+    const context = document.getElementById(canvas).getContext('2d');
+    // Se crea una instancia para generar el gráfico con los datos recibidos.
+    const chart = new Chart(context, {
+        type: 'line',
+        data: {
+            labels: xAxis,
+            datasets: [{
+                label: legend,
+                data: yAxis,
+                borderColor: '#000000',
+                fill: true,
+                borderWidth: 2,
+                backgroundColor: colors,
+                borderColor: colors,
+                tension: 0.1
+            }]
+        },
+        options: {
+            aspectRatio: 1,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title
+                },
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+/*
+*   Función para generar un gráfico de lineas parametrizado. Requiere el archivo chart.js. Para más información https://www.chartjs.org/
+*
+*   Parámetros: canvas (identificador de la etiqueta canvas), xAxis (datos para el eje X), yAxis (datos para el eje Y), legend (etiqueta para los datos) y title (título del gráfico).
+*
+*   Retorno: ninguno.
+*/
+function lineGraphP(canvas, xAxis, yAxis, legend, title) {
+    // Se declara un arreglo para guardar códigos de colores en formato hexadecimal.
+    if (lineChart) {
+        lineChart.destroy();
+    }
+    // Se declara un arreglo para guardar códigos de colores en formato hexadecimal.
+    let colors = [];
+    // Se generan códigos hexadecimales de 6 cifras de acuerdo con el número de datos a mostrar y se agregan al arreglo.
+    for (i = 0; i < xAxis.length; i++) {
+        colors.push('#' + (Math.random().toString(16)).substring(2, 8));
+    }
+    // Se establece el contexto donde se mostrará el gráfico, es decir, se define la etiqueta canvas a utilizar.
+    const context = document.getElementById(canvas).getContext('2d');
+    // Se crea una instancia para generar el gráfico con los datos recibidos.
+    lineChart = new Chart(context, {
+        type: 'line',
+        data: {
+            labels: xAxis,
+            datasets: [{
+                label: legend,
+                data: yAxis,
+                borderColor: '#000000',
+                fill: true,
+                borderWidth: 2,
+                backgroundColor: colors,
+                borderColor: colors,
+                tension: 0.1
+            }]
+        },
+        options: {
+            aspectRatio: 1,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title
+                },
+                legend: {
+                    display: true
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+//Función para grafica tipo Dona parametrizada
+function doughnutGraphP(canvas, legends, values, title) {
+    // Se declara un arreglo para guardar códigos de colores en formato hexadecimal.
+    if (donutChart) {
+        donutChart.destroy();
+    }
+    // Se declara un arreglo para guardar códigos de colores en formato hexadecimal.
+    let colors = [];
+    // Se generan códigos hexadecimales de 6 cifras de acuerdo con el número de datos a mostrar y se agregan al arreglo.
+    for (i = 0; i < values.length; i++) {
+        colors.push('#' + (Math.random().toString(16)).substring(2, 8));
+    }
+    // Se establece el contexto donde se mostrará el gráfico, es decir, se define la etiqueta canvas a utilizar.
+    const context = document.getElementById(canvas).getContext('2d');
+    // Se crea una instancia para generar el gráfico con los datos recibidos.
+    donutChart = new Chart(context, {
+        type: 'doughnut',
+        data: {
+            labels: legends,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                //borderColor: colors,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: true,
+                    text: title
+                }
+            }
+        }
+    });
+}
+
+/*Función general de verificar si hay datos, para poder reconocer si hay o no hay datos*/
+function predictButton(api, limit) {
+    console.log(limit);
+    let form = new FormData();
+    form.append('limit', limit);
+    fetch(api + 'readAllLimit', {
+        method: 'post',
+        body: form
+    }).then(function (request) {
+        // Se verifica si la petición es correcta, de lo contrario se muestra un mensaje en la consola indicando el problema.
+        if (request.ok) {
+            // Se obtiene la respuesta en formato JSON.
+            request.json().then(function (response) {
+                // Se comprueba si la respuesta es satisfactoria para obtener los datos, de lo contrario se muestra un mensaje con la excepción.
+                if (response.status) {
+                } else {
+                    ocultarButton2(1);
+                }
+            });
+        } else {
+            console.log(request.status + ' ' + request.statusText);
         }
     });
 }
