@@ -30,12 +30,12 @@ class Report extends FPDF
             // Se asigna el título del documento a la propiedad de la clase.
             $this->title = $title;
             // Se establece el título del documento (true = utf-8).
-            $this->setTitle('Despacho contable Esquivel - Reporte', true);
+            $this->setTitle('SmartBookkeeping - Reporte', true);
             // Se establecen los margenes del documento (izquierdo, superior y derecho).
             $this->setMargins(1.5, 10, 1.5);
             #Establecemos el margen inferior:
             $this->SetAutoPageBreak(true, 25);
-            // Se añade una nueva página al documento (orientación vertical y formato carta) y se llama al método header()
+            // Se añade una nueva página al documento (orientación y formato carta) y se llama al método header()
             $this->format = $format;
             $this->addPage($format, 'letter');
             // Se define un alias para el número total de páginas que se muestra en el pie del documento.
@@ -65,12 +65,12 @@ class Report extends FPDF
             $this->setFont('Arial', 'B', 10);
             $this->cell(70, 10, 'Nombre del usuario : ', 0, 0, 'C');
             $this->setFont('Arial', '', 10);
-            $this->cell(-20, 10, utf8_decode($_SESSION['usuario']), 0, 0, 'C');
+            $this->cell(-10, 10, utf8_decode($_SESSION['usuario']), 0, 0, 'C');
             //Nombre empleado
             $this->setFont('Arial', 'B', 10);
             $this->cell(115, 10, 'Nombre del empleado :', 0, 0, 'C');
             $this->setFont('Arial', '', 10);
-            $this->cell(-50, 10, utf8_decode($_SESSION['nombreUsuario'] . ' ' . $_SESSION['apellidoUsuario']), 0, 1, 'C');
+            $this->cell(-21, 10, utf8_decode($_SESSION['nombreUsuario'] . ' ' . $_SESSION['apellidoUsuario']), 0, 1, 'C');
             // Se ubica la fecha y hora del servidor.
             $this->cell(20);
             $this->setFont('Arial', 'B', 10);

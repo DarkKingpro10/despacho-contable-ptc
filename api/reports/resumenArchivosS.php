@@ -1,13 +1,17 @@
 <?php
 // Se verifica si existe el parámetro id en la url, de lo contrario se direcciona a la página web de origen.
 if (1 == 1) {
-    require('../helpers/dashboard_report.php');
+    require('../helpers/dashboardReport.php');
     require('../models/archivosSubidosEmp.php');
     // Se instancia el módelo productos para procesar los datos.
     $archivos = new ArchivosSubidosEmp;
     // Se instancia la clase para crear el reporte.
     $pdf = new Report;
     $pdf->startReport('Reporte resumen de archivos que he subido', 'l');
+    //Validando que halla una session
+    if(!isset($_SESSION['id_usuario']) || $_SESSION['tipo_usuario'] != 4){
+        header('location: ../../views/index.html');
+    }
     //Comprobamos que sea un empleado 
     if ($_SESSION['tipo_usuario'] != 4) {
         //Obtenemos los datos
@@ -29,6 +33,8 @@ if (1 == 1) {
         $pdf->setFillColor(245, 254, 255, 1);
         $pdf->Ln(5);
         $cont = 0; //Variable para contar
+        // Se establece la fuente para los encabezados.
+        $pdf->setFont('Times', '', 11); //Fuente de las letras
         if ($rowArchivos = $archivos->reporteArchivosInf()) {
             //Llenamos con la info obtenida
             foreach ($rowArchivos as $rowArchivos) {
@@ -52,6 +58,8 @@ if (1 == 1) {
                     $pdf->setFillColor(245, 254, 255, 1);
                     $pdf->Ln(5);
                     $cont = 0; //Variable para contar
+                    // Se establece la fuente para los encabezados.
+                    $pdf->setFont('Times', '', 11); //Fuente de las letras
                 }
                 $pdf->SetWidths(array(55, 40, 25, 25, 52, 50, 30)); //Seteamos el ancho de las celdas
                 $pdf->setHeight(10);
@@ -64,6 +72,7 @@ if (1 == 1) {
     } else {
         $pdf->cell(0, 10, utf8_decode('No hay archivos subidos por ti porque eres administrador'), 1, 1);
     }
+    header('Content-type: application/pdf');
     $pdf->output('I', 'Reporte resumen de los archivos del empleado: ' . $_SESSION['nombreUsuario'] . $_SESSION['apellidoUsuario'], true);
 } else {
     header('location: ../../views/archivosSubidos.html');

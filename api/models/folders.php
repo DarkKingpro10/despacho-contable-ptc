@@ -168,4 +168,32 @@ class Folders extends Validator
             return true;
         }
     }
+    /*
+        METODOS PARA GRAFICAS
+    */
+
+    //Método para obtener las 5 empresas con más folders
+    public function top5EmpresasFolders()
+    {
+        $sql = 'select emp.nombre_empresa, count(f.fk_id_empresa) as folders
+                from folders as f inner join empresas as emp ON f.fk_id_empresa = emp.id_empresa 
+                where f.fk_id_estado = 4
+                group by emp.nombre_empresa order by folders desc limit 5';
+        $params = null;
+        return Database::getRows($sql, $params);
+    }
+
+    /*
+        MÉTODOS POST EXPO
+    */
+    public function readFoldAllUser()
+    {
+        $sql = 'SELECT fol.id_folder, fol.nombre_folder, emp.nombre_empresa, est.nombre_estado, fol.fk_id_estado
+                FROM folders as fol
+                INNER JOIN estados AS est ON fol.fk_id_estado = est.id_estado
+                INNER JOIN empresas AS emp ON fol.fk_id_empresa = emp.id_empresa
+                WHERE fk_id_empresa = ? AND fol.fk_id_estado != 3;';
+        $params = array($this->fk_id_empresa);
+        return Database::getRows($sql, $params);
+    }
 }

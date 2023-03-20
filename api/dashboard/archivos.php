@@ -13,7 +13,7 @@ if (isset($_GET['action'])) {
     // Se declara e inicializa un arreglo para guardar el resultado que retorna la API.
     $result = array('status' => 0, 'session' => 0, 'message' => null, 'exception' => null, 'dataset' => null, 'username' => null);
     // Se verifica si existe una sesión iniciada como administrador, de lo contrario se finaliza el script con un mensaje de error.
-    if (isset($_SESSION['id_usuario'])) {
+    if (isset($_SESSION['id_usuario']) && $_SESSION['verifyP2']) {
         $result['session'] = 1;
         // Se compara la acción a realizar cuando un administrador ha iniciado sesión.
         switch ($_GET['action']) {
@@ -44,7 +44,7 @@ if (isset($_GET['action'])) {
                         $result['exception'] = 'Folder incorrecto';
                     } elseif ($_POST['search'] == '') {
                         $result['exception'] = 'Ingrese un valor para buscar';
-                    } elseif ($result['dataset'] = $archivos->buscarArchivos($_POST['search'],$_POST['limit'])) {
+                    } elseif ($result['dataset'] = $archivos->buscarArchivos($_POST['search'], $_POST['limit'])) {
                         $result['status'] = 1;
                         $result['message'] = 'Valor encontrado';
                     } elseif (Database::getException()) {
@@ -161,26 +161,40 @@ if (isset($_GET['action'])) {
             case 'delete':
                 if ($_SESSION['tipo_usuario'] == 4) {
                     if (!$archivos->setIdFolder($_SESSION['id_folder'])) {
-                        $result['exception'] = 'Empresa incorrecta';
+                        $result['exception'] = 'Folder incorrecta';
                     } elseif (!$archivos->setId($_POST['id'])) {
                         $result['exception'] = 'Archivo incorrecto';
                     } elseif (!$data = $archivos->obtenerArch()) {
-                        $result['exception'] = 'Folder inexistente';
+                        $result['exception'] = 'Archivo inexistente';
                     } elseif ($archivos->cambiarEstadoArch()) {
                         $result['status'] = 1;
-                        $nuevaUbicacion = '../documents/archivosBorrados/'.$data['nombre_archivo'];
-                        $ubicacionActual = '../documents/archivosFolders/'.$data['nombre_archivo'];
-                        if(rename($ubicacionActual,$nuevaUbicacion)){
-                           $result['message'] = 'Archivo eliminado correctamente'; 
-                        }else{
-                            $result['message'] = 'Archivo eliminado correctamente pero no se pudo hacer respaldo'; 
+                        $nuevaUbicacion = '../documents/archivosBorrados/' . $data['nombre_archivo'];
+                        $ubicacionActual = '../documents/archivosFolders/' . $data['nombre_archivo'];
+                        if (rename($ubicacionActual, $nuevaUbicacion)) {
+                            $result['message'] = 'Archivo eliminado correctamente';
+                        } else {
+                            $result['message'] = 'Archivo eliminado correctamente pero no se pudo hacer respaldo';
                         }
-                        
                     } else {
                         $result['exception'] = Database::getException();
                     }
                 } else {
                     $result['exception'] = '¿Que haces?. Tu usuario no puede hacer esto';
+                }
+                break;
+                //Obtener la cantidad de archivos subidos por empresa dentro de x fechas
+            case 'graficaArchivosEmpXF':
+                $_POST = $archivos->validateForm($_POST);
+                if ($_POST['fechai'] == '' || $_POST['fechaf'] == '') {
+                    $result['exception'] = 'No se permiten campos vacíos';
+                } elseif (!$archivos->setFecha($_POST['fechai']) && !$archivos->setFecha($_POST['fechaf'])) {
+                    $result['exception'] = 'Verifique que los datos sean fechas validas en formato dd/mm/yy o yy/mm/dd';
+                } elseif (!($_POST['fechai'] < $_POST['fechaf'])) {
+                    $result['exception'] = 'La fecha final debe ser mayor a la fecha inicial';
+                } elseif ($result['dataset'] = $archivos->archivosEmpXF($_POST['fechai'], $_POST['fechaf'])) {
+                    $result['status'] = 1;
+                } else {
+                    $result['exception'] = 'No hay datos disponibles';
                 }
                 break;
             default:

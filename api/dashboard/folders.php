@@ -13,7 +13,7 @@ if (isset($_GET['action'])) {
     // Se declara e inicializa un arreglo para guardar el resultado que retorna la API.
     $result = array('status' => 0, 'session' => 0, 'message' => null, 'exception' => null, 'dataset' => null, 'username' => null);
     // Se verifica si existe una sesión iniciada como administrador, de lo contrario se finaliza el script con un mensaje de error.
-    if (isset($_SESSION['id_usuario'])) {
+    if (isset($_SESSION['id_usuario']) && $_SESSION['verifyP2']) {
         $result['session'] = 1;
         // Se compara la acción a realizar cuando un administrador ha iniciado sesión.
         switch ($_GET['action']) {
@@ -132,6 +132,31 @@ if (isset($_GET['action'])) {
                     }
                 } else {
                     $result['exception'] = '¿Que haces?. Tu usuario no puede hacer esto';
+                }
+                break;
+                //Top 5 empresas con más folders
+            case 'top5EmpresasFolders':
+                $_POST = $folders->validateForm($_POST);
+                if ($result['dataset'] = $folders->top5EmpresasFolders()) {
+                    $result['status'] = 1;
+                    $result['message'] = $folders->top5EmpresasFolders();
+                } else {
+                    $result['exception'] = 'No se ha podido realizar la consulta';
+                }
+                break;
+                //Obtener los folders para todos los usuarios sin limit
+            case 'readFoldAllUser':
+                $_POST = $folders->validateForm($_POST);
+                if(!$folders->setIdEmpresa($_POST['idemp'])){
+                    $result['exception'] = 'Empresa incorrecta';
+                    echo($_POST['idemp']);
+                }elseif ($result['dataset'] = $folders->readFoldAllUser()) {
+                    $result['status'] = 1;
+                    $result['message'] = 'Folders encontrados';
+                } elseif (Database::getException()) {
+                    $result['exception'] = Database::getException();
+                } else {
+                    $result['exception'] = '¡Lo sentimos! No hay empresas registradas';
                 }
                 break;
             default:

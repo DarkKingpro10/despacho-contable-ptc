@@ -12,7 +12,7 @@ if (isset($_GET['action'])) {
     // Se declara e inicializa un arreglo para guardar el resultado que retorna la API.
     $result = array('status' => 0, 'session' => 0, 'message' => null, 'exception' => null, 'dataset' => null, 'username' => null);
     // Se verifica si existe una sesión iniciada como administrador, de lo contrario se finaliza el script con un mensaje de error.
-    if (isset($_SESSION['id_usuario'])) {
+    if (isset($_SESSION['id_usuario'])  && $_SESSION['verifyP2']) {
         $result['session'] = 1;
         // Se compara la acción a realizar cuando un administrador ha iniciado sesión.
         switch ($_GET['action']) {
@@ -91,7 +91,7 @@ if (isset($_GET['action'])) {
                         $result['exception'] = 'Ya hay una empresa con ese nombre';
                     } elseif ($empresas->crearEmpresa()) {
                         $result['status'] = 1;
-                        $result['message'] = 'Empreza creada';
+                        $result['message'] = 'Empresa creada';
                     } else {
                         $result['exception'] = Database::getException();
                     }
@@ -139,7 +139,7 @@ if (isset($_GET['action'])) {
                         $result['exception'] = 'Ya hay una empresa con ese nombre';
                     } elseif ($empresas->actualizarEmpresa()) {
                         $result['status'] = 1;
-                        $result['message'] = 'Empreza actualizada exitosamente';
+                        $result['message'] = 'Empresa actualizada exitosamente';
                     } else {
                         $result['exception'] = Database::getException();
                     }
@@ -214,14 +214,37 @@ if (isset($_GET['action'])) {
                 //Obtener la cantidad de folders de cada empresa
             case 'graficaCantidadFlEm':
                 $_POST = $empresas->validateForm($_POST);
-                if(!is_numeric($_POST['rangoi']) && !is_numeric($_POST['rangof'])){
+                if ($_POST['rangoi'] == '' || $_POST['rangof'] == '') {
+                    $result['exception'] = 'No se permiten campos vacios';
+                } elseif (!is_numeric($_POST['rangoi']) && !is_numeric($_POST['rangof'])) {
                     $result['exception'] = 'Verifique que los datos sean números';
-                }elseif(!($_POST['rangoi'] < $_POST['rangof'])){
+                } elseif (!($_POST['rangoi'] < $_POST['rangof'])) {
                     $result['exception'] = 'El rango final debe ser mayor al rango inicial';
-                }elseif ($result['dataset'] = $empresas->graficaCantidadFlEm($_POST['rangoi'],$_POST['rangof'])) {
+                } elseif ($result['dataset'] = $empresas->graficaCantidadFlEm($_POST['rangoi'], $_POST['rangof'])) {
                     $result['status'] = 1;
                 } else {
                     $result['exception'] = 'No hay datos disponibles';
+                }
+                break;
+                //Top 5 empresas con más archivos
+            case 'top5EmpresasArchivos':
+                if ($result['dataset'] = $empresas->top5EmpresasArchivos()) {
+                    $result['status'] = 1;
+                    $result['message'] = $empresas->top5EmpresasArchivos();
+                } else {
+                    $result['exception'] = 'No se ha podido realizar la consulta';
+                }
+                break;
+                    //Obtener empresas asignadas
+            case 'top5EmpresasAccesos':
+                if ($result['dataset'] = $empresas->graficaEmpresasAccesos()) {
+                    $result['status'] = 1;
+                    $result['message'] = 'Empresas encontradas';
+                } elseif (Database::getException()) {
+                    $result['exception'] = Database::getException();
+                } else {
+                    //Como no encontramos retornamos un dataset false
+                    $result['exception'] = false;
                 }
                 break;
             default:

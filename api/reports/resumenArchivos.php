@@ -1,13 +1,17 @@
 <?php
 // Se verifica si existe el parámetro id en la url, de lo contrario se direcciona a la página web de origen.
 if (1 == 1) {
-    require('../helpers/dashboard_report.php');
+    require('../helpers/dashboardReport.php');
     require('../models/archivos.php');
     // Se instancia el módelo productos para procesar los datos.
     $archivos = new Archivos;
     // Se instancia la clase para crear el reporte.
     $pdf = new Report;
     $pdf->startReport('Reporte resumen de archivos dentro de folder', 'p');
+    //Validando que halla una session
+    if(!isset($_SESSION['id_usuario']) || $_SESSION['tipo_usuario'] != 4){
+        header('location: ../../views/index.html');
+    }
     //Obtenemos el nombre de la empresa y el archivo
     if ($rowInfo = $archivos->nombreEmpFol()) {
         //ESPACIO ENTRE CELDA
@@ -57,7 +61,8 @@ if (1 == 1) {
             $pdf->setFillColor(245, 254, 255, 1);
             $pdf->Ln(5);
             $cont = 0; //Variable para contar
-
+            // Se establece la fuente para los encabezados.
+            $pdf->setFont('Times', '', 11); //Fuente de las letras
             //Llenamos con la info obtenida
             foreach ($rowArchivos as $rowArchivos) {
                 //Evaluamos si se debe poner el encabezado
@@ -80,6 +85,8 @@ if (1 == 1) {
                     $pdf->setFillColor(245, 254, 255, 1);
                     $pdf->Ln(5);
                     $cont = 0; //Variable para contar
+                    // Se establece la fuente para los encabezados.
+                    $pdf->setFont('Times', '', 11); //Fuente de las letras
                 }
                 //ESPACIO ENTRE CELDA
                 $pdf->cell(10, 10, ' ', 0, 0, 'C');
@@ -91,6 +98,7 @@ if (1 == 1) {
         } else {
             $pdf->cell(0, 10, utf8_decode('No hay archivos registrados en este folder'), 1, 1);
         }
+        header('Content-type: application/pdf');
         $pdf->output('I', 'Reporte resumen de los archivos del folder: ' . $rowInfo['nombre_folder'], true);
     } else {
         header('location: ../../views/archivos.html');

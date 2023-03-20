@@ -13,7 +13,7 @@ if (isset($_GET['action'])) {
     // Se declara e inicializa un arreglo para guardar el resultado que retorna la API.
     $result = array('status' => 0, 'session' => 0, 'message' => null, 'exception' => null, 'dataset' => null, 'username' => null);
     // Se verifica si existe una sesión iniciada como administrador, de lo contrario se finaliza el script con un mensaje de error.
-    if (isset($_SESSION['id_usuario'])) {
+    if (isset($_SESSION['id_usuario']) && $_SESSION['verifyP2']) {
         $result['session'] = 1;
         // Se compara la acción a realizar cuando un administrador ha iniciado sesión.
         switch ($_GET['action']) {
@@ -193,10 +193,11 @@ if (isset($_GET['action'])) {
                     $result['exception'] = 'Producto inexistente';
                 } elseif ($archivos->eliminarArchivoEmp()) {
                     $result['status'] = 1;
+                    $archivos->actualizarEstadoDEL();
                     if ($archivos->deleteFile($archivos->getRoute(), $data['nombre_archivo'])) {
                         $result['message'] = 'Archivo eliminado correctamente';
                     } else {
-                        $result['message'] = 'Archivo eliminado pero no se borró la imagen';
+                        $result['message'] = 'Archivo eliminado pero no se borró el archivo';
                     }
                 } else {
                     $result['exception'] = 'No se ha podido eliminar el archivo';
@@ -209,12 +210,25 @@ if (isset($_GET['action'])) {
                 } elseif (!$data = $archivos->setIdEmpleado($_SESSION['id_usuario'])) {
                     $result['exception'] = 'Usuario inexistente';
                 } elseif (!$data = $archivos->obtenerArchivo()) {
-                    $result['exception'] = 'Producto inexistente';
+                    $result['exception'] = 'Archivo inexistente';
                 } elseif ($archivos->estadoDesc()) {
                     $result['status'] = 1;
                     $result['message'] = 'Se ha cambiado su estado';
                 } else {
                     $result['exception'] = 'No se ha podido actualizar su estado';
+                }
+                break;
+                //Top 3 empleados con más archivo de x tipo
+            case 'top3EmpleadosArchivos':
+                if (!isset($_POST['tipo-de-empleado'])) {
+                    $result['exception'] = 'Seleccione un tipo de empleado';
+                    $result['message'] = $_POST['tipo-de-empleado'];
+                } else if ($result['dataset'] = $archivos->top3EmpleadosArchivos($_POST['tipo-de-empleado'])) {
+                    $result['status'] = 1;
+                    $result['message'] = $_POST['tipo-de-empleado'];
+                } else {
+                    $result['message'] = $_POST['tipo-de-empleado'];
+                    $result['exception'] = 'No hay datos disponibles';
                 }
                 break;
             default:
